@@ -63,7 +63,7 @@ export function MovieDetectHero() {
     },
   ]
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (activeSearchType === "soundtrack") {
       handleSoundtrackSearch()
     } else if (activeSearchType === "screenshot") {
@@ -71,7 +71,40 @@ export function MovieDetectHero() {
     } else if (activeSearchType === "video") {
       handleVideoSearch()
     } else if (searchQuery.trim() || activeSearchType !== "scene") {
-      setIsSearchModalOpen(true)
+      // TODO: Call appropriate search API based on search type
+      try {
+        let endpoint = "/api/search/text"
+        const payload: any = { query: searchQuery }
+
+        switch (activeSearchType) {
+          case "actor":
+            endpoint = "/api/search/text"
+            payload.type = "actor"
+            break
+          case "scene":
+            endpoint = "/api/search/text"
+            payload.type = "scene"
+            break
+          default:
+            endpoint = "/api/search/text"
+        }
+
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        })
+
+        const results = await response.json()
+        console.log("Search results:", results)
+
+        setIsSearchModalOpen(true)
+      } catch (error) {
+        console.error("Search error:", error)
+        setIsSearchModalOpen(true) // Still open modal for demo
+      }
     }
   }
 
@@ -84,9 +117,17 @@ export function MovieDetectHero() {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices
         .getUserMedia({ audio: true })
-        .then(() => {
+        .then(async (stream) => {
           setIsRecording(true)
-          setIsSearchModalOpen(true)
+          // TODO: Implement audio recording and send to /api/search/audio
+          console.log("Recording audio for soundtrack search...")
+
+          // Stop recording after 10 seconds for demo
+          setTimeout(() => {
+            stream.getTracks().forEach((track) => track.stop())
+            setIsRecording(false)
+            setIsSearchModalOpen(true)
+          }, 10000)
         })
         .catch(() => {
           audioInputRef.current?.click()
@@ -110,6 +151,8 @@ export function MovieDetectHero() {
       navigator.mediaDevices
         .getUserMedia({ video: true })
         .then(() => {
+          // TODO: Implement video recording and send to /api/search/video
+          console.log("Recording video for search...")
           setIsSearchModalOpen(true)
         })
         .catch(() => {
@@ -130,20 +173,44 @@ export function MovieDetectHero() {
     setIsDragOver(false)
   }
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragOver(false)
     const files = Array.from(e.dataTransfer.files)
     if (files.length > 0) {
       const file = files[0]
-      if (file.type.startsWith("audio/")) {
-        setActiveSearchType("soundtrack")
-      } else if (file.type.startsWith("image/")) {
-        setActiveSearchType("screenshot")
-      } else if (file.type.startsWith("video/")) {
-        setActiveSearchType("video")
+
+      // TODO: Upload file and call appropriate search API
+      const formData = new FormData()
+      formData.append("file", file)
+
+      try {
+        let endpoint = "/api/search/image"
+
+        if (file.type.startsWith("audio/")) {
+          setActiveSearchType("soundtrack")
+          endpoint = "/api/search/audio"
+        } else if (file.type.startsWith("image/")) {
+          setActiveSearchType("screenshot")
+          endpoint = "/api/search/image"
+        } else if (file.type.startsWith("video/")) {
+          setActiveSearchType("video")
+          endpoint = "/api/search/video"
+        }
+
+        const response = await fetch(endpoint, {
+          method: "POST",
+          body: formData,
+        })
+
+        const results = await response.json()
+        console.log("File search results:", results)
+
+        setIsSearchModalOpen(true)
+      } catch (error) {
+        console.error("File search error:", error)
+        setIsSearchModalOpen(true) // Still open modal for demo
       }
-      setIsSearchModalOpen(true)
     }
   }
 
@@ -159,10 +226,41 @@ export function MovieDetectHero() {
     }
   }
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: string) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: string) => {
     const file = event.target.files?.[0]
     if (file) {
-      setIsSearchModalOpen(true)
+      // TODO: Upload file and call appropriate search API
+      const formData = new FormData()
+      formData.append("file", file)
+
+      try {
+        let endpoint = "/api/search/image"
+
+        switch (type) {
+          case "audio":
+            endpoint = "/api/search/audio"
+            break
+          case "image":
+            endpoint = "/api/search/image"
+            break
+          case "video":
+            endpoint = "/api/search/video"
+            break
+        }
+
+        const response = await fetch(endpoint, {
+          method: "POST",
+          body: formData,
+        })
+
+        const results = await response.json()
+        console.log("File upload search results:", results)
+
+        setIsSearchModalOpen(true)
+      } catch (error) {
+        console.error("File upload search error:", error)
+        setIsSearchModalOpen(true) // Still open modal for demo
+      }
     }
   }
 
@@ -371,7 +469,8 @@ export function MovieDetectHero() {
         >
           <div className="max-w-5xl mx-auto space-y-12">
             <div className="space-y-8">
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-tight text-white tracking-tight">
+              {/* Reduced font sizes for better balance */}
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-black leading-tight text-white tracking-tight">
                 MovieDetect,{" "}
                 <span className="block mt-2">
                   a place to{" "}
@@ -386,7 +485,7 @@ export function MovieDetectHero() {
                 </span>
               </h1>
 
-              <div className="flex flex-wrap justify-center gap-6 text-base md:text-lg text-gray-300 font-medium">
+              <div className="flex flex-wrap justify-center gap-6 text-sm md:text-base text-gray-300 font-medium">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-teal-400 rounded-full"></div>
                   <span>AI-Powered</span>
@@ -401,7 +500,7 @@ export function MovieDetectHero() {
                 </div>
               </div>
 
-              <p className="text-lg md:text-xl text-gray-200 max-w-3xl mx-auto font-light leading-relaxed">
+              <p className="text-base md:text-lg text-gray-200 max-w-3xl mx-auto font-light leading-relaxed">
                 Find movies by describing scenes, uploading images, humming soundtracks, or recording video clips.
                 <br />
                 <span className="text-gray-300">Our advanced AI delivers precise results instantly.</span>
