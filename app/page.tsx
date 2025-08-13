@@ -1,19 +1,31 @@
+"use client"
+
+import { useState } from "react"
 import { MovieDetectHero } from "@/components/movie-detect-hero"
 import { MovieCarousels } from "@/components/movie-carousels"
 import { HowItWorks } from "@/components/how-it-works"
 import { EmailCapture } from "@/components/email-capture"
 import { Footer } from "@/components/footer"
 import { ScrollToTop } from "@/components/scroll-to-top"
+import { SearchModal } from "@/components/search-modal"
 
 export default function HomePage() {
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
+
+  const handleSearchClick = () => {
+    setIsSearchModalOpen(true)
+  }
+
   return (
-    <main className="min-h-screen">
-      <MovieDetectHero />
+    <div className="min-h-screen bg-black">
+      <MovieDetectHero onSearchClick={handleSearchClick} />
       <MovieCarousels />
       <HowItWorks />
       <EmailCapture />
       <Footer />
       <ScrollToTop />
-    </main>
+
+      <SearchModal isOpen={isSearchModalOpen} onClose={() => setIsSearchModalOpen(false)} />
+    </div>
   )
 }
