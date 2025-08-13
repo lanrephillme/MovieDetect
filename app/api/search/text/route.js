@@ -2,126 +2,89 @@ import { NextResponse } from "next/server"
 
 export async function POST(request) {
   try {
-    const { query, type } = await request.json()
+    const { query, searchType } = await request.json()
 
-    if (!query?.trim()) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Search query is required",
-        },
-        { status: 400 },
-      )
+    if (!query || !query.trim()) {
+      return NextResponse.json({ success: false, error: "Search query is required" }, { status: 400 })
     }
 
-    let searchResults = []
+    let results = []
+    let confidenceScore = 85
 
-    if (type === "actor") {
-      // TODO: Integrate with TMDb Person Search API
-      // const tmdbResponse = await fetch(`https://api.themoviedb.org/3/search/person?api_key=${process.env.TMDB_API_KEY}&query=${encodeURIComponent(query)}`)
-      // const tmdbData = await tmdbResponse.json()
-      //
-      // if (tmdbData.results?.length > 0) {
-      //   const personId = tmdbData.results[0].id
-      //   const creditsResponse = await fetch(`https://api.themoviedb.org/3/person/${personId}/movie_credits?api_key=${process.env.TMDB_API_KEY}`)
-      //   const creditsData = await creditsResponse.json()
-      //   searchResults = creditsData.cast || []
-      // }
-
-      // Mock actor search results
-      searchResults = [
-        {
-          id: 201,
-          title: "La La Land",
-          poster: "/placeholder.svg",
-          rating: 8.0,
-          year: 2016,
-          genre: ["Romance", "Musical"],
-          synopsis: "A jazz musician and an aspiring actress fall in love while pursuing their dreams in Los Angeles.",
-          confidence: 95,
-          matchReason: `Found movies featuring "${query}" in the cast`,
-        },
-        {
-          id: 202,
-          title: "Blade Runner 2049",
-          poster: "/blade-runner-2049-poster.png",
-          rating: 8.0,
-          year: 2017,
-          genre: ["Sci-Fi", "Thriller"],
-          synopsis: "A young blade runner's discovery leads him to track down former blade runner Rick Deckard.",
-          confidence: 92,
-          matchReason: `"${query}" plays a leading role in this film`,
-        },
-      ]
-    } else {
-      // Scene description search using NLP
-      // TODO: Integrate with Custom AI API for scene description matching
-      // const aiResponse = await fetch(`${process.env.CUSTOM_AI_API_URL}/scene-search`, {
+    if (searchType === "scene") {
+      // TODO: Implement NLP scene description matching
+      // const aiResponse = await fetch(`${process.env.CUSTOM_AI_API_URL}/analyze-scene`, {
       //   method: 'POST',
       //   headers: {
       //     'Authorization': `Bearer ${process.env.CUSTOM_AI_API_KEY}`,
       //     'Content-Type': 'application/json'
       //   },
-      //   body: JSON.stringify({
-      //     description: query,
-      //     limit: 10
-      //   })
+      //   body: JSON.stringify({ description: query })
       // })
-      // const aiData = await aiResponse.json()
 
-      // TODO: Cross-reference AI results with TMDb for complete movie data
-      // const moviePromises = aiData.matches.map(match =>
-      //   fetch(`https://api.themoviedb.org/3/movie/${match.tmdbId}?api_key=${process.env.TMDB_API_KEY}`)
-      // )
-      // const movieResponses = await Promise.all(moviePromises)
+      // Mock scene description results
+      if (query.toLowerCase().includes("space") || query.toLowerCase().includes("future")) {
+        results = [
+          { id: 1, title: "Blade Runner 2049", poster: "/blade-runner-2049-poster.png", year: 2017, rating: 8.0 },
+          { id: 2, title: "Interstellar", poster: "/interstellar-inspired-poster.png", year: 2014, rating: 8.6 },
+          { id: 3, title: "The Matrix", poster: "/matrix-movie-poster.png", year: 1999, rating: 8.7 },
+        ]
+        confidenceScore = 92
+      } else if (query.toLowerCase().includes("superhero") || query.toLowerCase().includes("hero")) {
+        results = [
+          { id: 4, title: "The Dark Knight", poster: "/dark-knight-poster.png", year: 2008, rating: 9.0 },
+          {
+            id: 5,
+            title: "Guardians of the Galaxy Vol. 3",
+            poster: "/guardians-galaxy-vol-3-poster.png",
+            year: 2023,
+            rating: 8.0,
+          },
+        ]
+        confidenceScore = 88
+      }
+    } else if (searchType === "actor") {
+      // TODO: Implement TMDb actor search
+      // const tmdbResponse = await fetch(`https://api.themoviedb.org/3/search/person?api_key=${process.env.TMDB_API_KEY}&query=${encodeURIComponent(query)}`)
 
-      // Mock scene description search results
-      searchResults = [
-        {
-          id: 301,
-          title: "The Dark Knight",
-          poster: "/dark-knight-poster.png",
-          rating: 9.0,
-          year: 2008,
-          genre: ["Action", "Crime"],
-          synopsis: "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham.",
-          confidence: 88,
-          matchReason: "Scene description matches the interrogation room sequence",
-        },
-        {
-          id: 302,
-          title: "Inception",
-          poster: "/inception-movie-poster.png",
-          rating: 8.8,
-          year: 2010,
-          genre: ["Sci-Fi", "Thriller"],
-          synopsis: "A thief who steals corporate secrets through dream-sharing technology.",
-          confidence: 82,
-          matchReason: "Description matches the spinning top ending scene",
-        },
-      ]
+      // Mock actor search results
+      if (query.toLowerCase().includes("ryan gosling")) {
+        results = [
+          { id: 1, title: "Blade Runner 2049", poster: "/blade-runner-2049-poster.png", year: 2017, rating: 8.0 },
+          { id: 6, title: "La La Land", poster: "/placeholder.svg", year: 2016, rating: 8.0 },
+        ]
+        confidenceScore = 95
+      } else if (query.toLowerCase().includes("leonardo dicaprio")) {
+        results = [{ id: 7, title: "Inception", poster: "/inception-movie-poster.png", year: 2010, rating: 8.8 }]
+        confidenceScore = 96
+      }
     }
 
-    // Filter results based on confidence threshold
-    const filteredResults = searchResults.filter((result) => result.confidence >= 50)
+    // If no specific matches, provide general search results
+    if (results.length === 0) {
+      // TODO: Implement general TMDb search
+      // const tmdbResponse = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${process.env.TMDB_API_KEY}&query=${encodeURIComponent(query)}`)
+
+      results = [
+        { id: 8, title: "Popular Movie 1", poster: "/placeholder.svg", year: 2023, rating: 7.5 },
+        { id: 9, title: "Popular Movie 2", poster: "/placeholder.svg", year: 2023, rating: 7.8 },
+      ]
+      confidenceScore = 65
+    }
 
     return NextResponse.json({
       success: true,
-      data: filteredResults,
+      results,
+      searchType,
       query,
-      type,
-      total: filteredResults.length,
-      searchMethod: type === "actor" ? "TMDb Person Search" : "AI Scene Description Matching",
+      confidenceScore,
+      metadata: {
+        searchMethod: searchType === "scene" ? "Scene Description Analysis" : "Actor/Actress Search",
+        processedQuery: query.trim(),
+      },
     })
   } catch (error) {
     console.error("Error in text search:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Search failed. Please try again with different terms.",
-        details: error.message,
-      },
-      { status: 500 },
-    )
+    return NextResponse.json({ success: false, error: "Search failed. Please try again." }, { status: 500 })
   }
 }

@@ -3,90 +3,44 @@ import { NextResponse } from "next/server"
 export async function POST(request) {
   try {
     const formData = await request.formData()
-    const imageFile = formData.get("file")
+    const imageFile = formData.get("image")
 
     if (!imageFile) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Image file is required",
-        },
-        { status: 400 },
-      )
+      return NextResponse.json({ success: false, error: "Image file is required" }, { status: 400 })
     }
 
-    // TODO: Integrate with AWS Rekognition for image analysis
-    // const AWS = require('aws-sdk')
-    // const rekognition = new AWS.Rekognition({
-    //   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    //   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    //   region: process.env.AWS_REGION
-    // })
-    //
-    // const imageBuffer = Buffer.from(await imageFile.arrayBuffer())
-    // const rekognitionParams = {
+    // TODO: Implement image recognition with AWS Rekognition or Google Vision
+    // const imageBuffer = await imageFile.arrayBuffer()
+    // const rekognitionResponse = await rekognition.detectLabels({
     //   Image: { Bytes: imageBuffer },
-    //   MaxLabels: 20,
+    //   MaxLabels: 10,
     //   MinConfidence: 70
-    // }
-    //
-    // const rekognitionResult = await rekognition.detectLabels(rekognitionParams).promise()
-    // const labels = rekognitionResult.Labels.map(label => label.Name)
+    // }).promise()
 
-    // TODO: Alternative - Google Vision API integration
-    // const vision = require('@google-cloud/vision')
-    // const client = new vision.ImageAnnotatorClient({
-    //   keyFilename: process.env.GOOGLE_VISION_API_KEY
-    // })
-    // const [result] = await client.labelDetection({ image: { content: imageBuffer } })
-    // const labels = result.labelAnnotations.map(label => label.description)
+    // Mock image recognition results
+    const detectedObjects = ["person", "cityscape", "neon lights", "futuristic building"]
+    const confidenceScore = 82
 
-    // Mock image analysis results
-    const detectedLabels = ["cityscape", "neon lights", "futuristic", "rain", "dark atmosphere"]
-    const searchResults = [
-      {
-        id: 501,
-        title: "Blade Runner 2049",
-        poster: "/blade-runner-2049-poster.png",
-        rating: 8.0,
-        year: 2017,
-        genre: ["Sci-Fi", "Thriller"],
-        synopsis: "A young blade runner's discovery leads him to track down former blade runner Rick Deckard.",
-        confidence: 91,
-        matchReason: "Image contains futuristic cityscape with neon lighting similar to movie scenes",
-        detectedElements: detectedLabels,
-      },
-      {
-        id: 502,
-        title: "The Matrix",
-        poster: "/matrix-movie-poster.png",
-        rating: 8.7,
-        year: 1999,
-        genre: ["Action", "Sci-Fi"],
-        synopsis: "A computer programmer is led to fight an underground war against powerful computers.",
-        confidence: 83,
-        matchReason: "Dark urban atmosphere matches the movie's visual style",
-        detectedElements: ["urban", "dark", "technology"],
-      },
+    // TODO: Match detected objects to movies via TMDb
+    const results = [
+      { id: 1, title: "Blade Runner 2049", poster: "/blade-runner-2049-poster.png", year: 2017, rating: 8.0 },
+      { id: 2, title: "Ghost in the Shell", poster: "/placeholder.svg", year: 2017, rating: 7.3 },
+      { id: 3, title: "The Matrix", poster: "/matrix-movie-poster.png", year: 1999, rating: 8.7 },
     ]
 
     return NextResponse.json({
       success: true,
-      data: searchResults,
-      detectedLabels,
-      total: searchResults.length,
-      searchMethod: "AWS Rekognition Image Analysis",
-      processingTime: "1.8s",
+      results,
+      searchType: "image",
+      confidenceScore,
+      metadata: {
+        searchMethod: "Image Recognition",
+        detectedObjects,
+        imageProcessed: true,
+      },
     })
   } catch (error) {
     console.error("Error in image search:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Image processing failed. Please try with a different image.",
-        details: error.message,
-      },
-      { status: 500 },
-    )
+    return NextResponse.json({ success: false, error: "Image search failed. Please try again." }, { status: 500 })
   }
 }

@@ -1,11 +1,12 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
-import { Card, CardContent } from "@/components/ui/card"
+import { ChevronLeft, ChevronRight, Play, Plus, Volume2, VolumeX, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Play, Plus, Volume2, VolumeX, Star, Clock, Calendar } from "lucide-react"
-import { MoviePreviewModal } from "./movie-preview-modal"
+import { MovieDetailModal } from "./movie-detail-modal"
 
 interface Movie {
   id: number
@@ -13,207 +14,314 @@ interface Movie {
   poster: string
   backdrop?: string
   year: number
+  genre: string[]
   rating: number
-  genre: string
-  duration: string
-  description: string
-  trailer?: string
-  confidence?: number
-  platforms?: string[]
+  duration?: number
+  synopsis?: string
+  aiConfidence?: number
 }
 
-interface CarouselProps {
+interface CarouselData {
   title: string
   movies: Movie[]
-  onMovieClick: (movie: Movie) => void
+  loading: boolean
+  error: string | null
 }
 
-function MovieCarousel({ title, movies, onMovieClick }: CarouselProps) {
+export function MovieCarousels() {
+  const [carousels, setCarousels] = useState<Record<string, CarouselData>>({
+    trending: { title: "Trending Now", movies: [], loading: true, error: null },
+    popular: { title: "Popular Movies", movies: [], loading: true, error: null },
+    newReleases: { title: "New Releases", movies: [], loading: true, error: null },
+    topRated: { title: "Top Rated", movies: [], loading: true, error: null },
+    recommendations: { title: "AI Recommendations", movies: [], loading: true, error: null },
+    watchlist: { title: "Your Watchlist", movies: [], loading: true, error: null },
+  })
+
   const [hoveredMovie, setHoveredMovie] = useState<number | null>(null)
-  const [isMuted, setIsMuted] = useState(true)
+  const [mutedMovies, setMutedMovies] = useState<Set<number>>(new Set())
+  const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null)
+  const [showMovieModal, setShowMovieModal] = useState(false)
 
-  return (
-    <div className="mb-8">
-      <h2 className="text-2xl font-bold text-white mb-4 px-4">{title}</h2>
-      <div className="flex gap-4 overflow-x-auto pb-4 px-4 scrollbar-hide">
-        {movies.map((movie) => (
-          <Card
-            key={movie.id}
-            className="min-w-[280px] bg-gray-900 border-gray-800 cursor-pointer transition-all duration-300 hover:scale-105 hover:bg-gray-800"
-            onMouseEnter={() => setHoveredMovie(movie.id)}
-            onMouseLeave={() => setHoveredMovie(null)}
-            onClick={() => onMovieClick(movie)}
+  useEffect(() => {
+    const fetchCarouselData = async (endpoint: string, key: string) => {
+      try {
+        const response = await fetch(`/api/movies/${endpoint}`)
+        const data = await response.json()
+
+        if (data.success) {
+          setCarousels((prev) => ({
+            ...prev,
+            [key]: {
+              ...prev[key],
+              movies: data.movies,
+              loading: false,
+            },
+          }))
+        } else {
+          throw new Error(data.error || "Failed to fetch movies")
+        }
+      } catch (error) {
+        console.error(`Error fetching ${key}:`, error)
+        setCarousels((prev) => ({
+          ...prev,
+          [key]: {
+            ...prev[key],
+            loading: false,
+            error: error instanceof Error ? error.message : "Failed to load movies",
+          },
+        }))
+      }
+    }
+
+    // Fetch all carousel data
+    fetchCarouselData("trending", "trending")
+    fetchCarouselData("popular", "popular")
+    fetchCarouselData("new-releases", "newReleases")
+    fetchCarouselData("top-rated", "topRated")
+
+    // Fetch recommendations and watchlist
+    fetch("/api/recommendations")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setCarousels((prev) => ({
+            ...prev,
+            recommendations: {
+              ...prev.recommendations,
+              movies: data.movies,
+              loading: false,
+            },
+          }))
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching recommendations:", error)
+        setCarousels((prev) => ({
+          ...prev,
+          recommendations: {
+            ...prev.recommendations,
+            loading: false,
+            error: "Failed to load recommendations",
+          },
+        }))
+      })
+
+    fetch("/api/watchlist/user")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setCarousels((prev) => ({
+            ...prev,
+            watchlist: {
+              ...prev.watchlist,
+              movies: data.movies,
+              loading: false,
+            },
+          }))
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching watchlist:", error)
+        setCarousels((prev) => ({
+          ...prev,
+          watchlist: {
+            ...prev.watchlist,
+            loading: false,
+            error: "Failed to load watchlist",
+          },
+        }))
+      })
+  }, [])
+
+  const handleMovieClick = (movieId: number) => {
+    setSelectedMovieId(movieId)
+    setShowMovieModal(true)
+  }
+
+  const handleAddToWatchlist = async (movieId: number, event: React.MouseEvent) => {
+    event.stopPropagation()
+    try {
+      const response = await fetch("/api/watchlist/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ movieId }),
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        console.log("Added to watchlist:", movieId)
+        // Optionally refresh watchlist carousel
+      }
+    } catch (error) {
+      console.error("Error adding to watchlist:", error)
+    }
+  }
+
+  const toggleMute = (movieId: number, event: React.MouseEvent) => {
+    event.stopPropagation()
+    setMutedMovies((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(movieId)) {
+        newSet.delete(movieId)
+      } else {
+        newSet.add(movieId)
+      }
+      return newSet
+    })
+  }
+
+  const scrollCarousel = (carouselKey: string, direction: "left" | "right") => {
+    const carousel = document.getElementById(`carousel-${carouselKey}`)
+    if (carousel) {
+      const scrollAmount = 300
+      carousel.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      })
+    }
+  }
+
+  const renderCarousel = (key: string, data: CarouselData) => (
+    <div key={key} className="mb-12">
+      <h2 className="text-2xl font-bold text-white mb-6">{data.title}</h2>
+
+      {data.loading ? (
+        <div className="flex space-x-4">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="flex-shrink-0 w-48 h-72 bg-gray-800 rounded-lg animate-pulse" />
+          ))}
+        </div>
+      ) : data.error ? (
+        <div className="text-red-400 bg-red-900/20 p-4 rounded-lg">
+          <p>
+            Error loading {data.title.toLowerCase()}: {data.error}
+          </p>
+        </div>
+      ) : (
+        <div className="relative group">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/50 text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={() => scrollCarousel(key, "left")}
           >
-            <CardContent className="p-0 relative">
-              <div className="relative overflow-hidden rounded-t-lg">
-                <img
-                  src={movie.poster || "/placeholder.svg"}
-                  alt={movie.title}
-                  className="w-full h-[400px] object-cover transition-transform duration-300"
-                />
+            <ChevronLeft className="w-6 h-6" />
+          </Button>
 
-                {hoveredMovie === movie.id && (
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                    <div className="flex gap-2">
+          <div
+            id={`carousel-${key}`}
+            className="flex space-x-4 overflow-x-auto scrollbar-hide pb-4"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            {data.movies.map((movie) => (
+              <div
+                key={movie.id}
+                className="flex-shrink-0 w-48 cursor-pointer group/movie"
+                onMouseEnter={() => setHoveredMovie(movie.id)}
+                onMouseLeave={() => setHoveredMovie(null)}
+                onClick={() => handleMovieClick(movie.id)}
+              >
+                <div className="relative overflow-hidden rounded-lg transition-transform group-hover/movie:scale-105">
+                  <img
+                    src={movie.poster || "/placeholder.svg"}
+                    alt={movie.title}
+                    className="w-full h-72 object-cover"
+                  />
+
+                  {/* Hover Overlay */}
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/movie:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="text-center space-y-2">
                       <Button size="sm" className="bg-white text-black hover:bg-gray-200">
                         <Play className="w-4 h-4 mr-1" />
                         Play
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-white text-white hover:bg-white hover:text-black bg-transparent"
-                      >
-                        <Plus className="w-4 h-4 mr-1" />
-                        Watchlist
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-white text-white hover:bg-white hover:text-black bg-transparent"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setIsMuted(!isMuted)
-                        }}
-                      >
-                        {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                      </Button>
+                      <div className="flex space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-white text-white hover:bg-white hover:text-black bg-transparent"
+                          onClick={(e) => handleAddToWatchlist(movie.id, e)}
+                        >
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-white text-white hover:bg-white hover:text-black bg-transparent"
+                          onClick={(e) => toggleMute(movie.id, e)}
+                        >
+                          {mutedMovies.has(movie.id) ? (
+                            <VolumeX className="w-4 h-4" />
+                          ) : (
+                            <Volume2 className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                )}
 
-                {movie.confidence && (
-                  <Badge className="absolute top-2 right-2 bg-teal-600 text-white">{movie.confidence}% Match</Badge>
-                )}
-              </div>
-
-              <div className="p-4">
-                <h3 className="font-semibold text-white mb-2 line-clamp-1">{movie.title}</h3>
-                <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
-                  <Calendar className="w-4 h-4" />
-                  <span>{movie.year}</span>
-                  <Clock className="w-4 h-4 ml-2" />
-                  <span>{movie.duration}</span>
-                </div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Star className="w-4 h-4 text-yellow-500" />
-                  <span className="text-white font-medium">{movie.rating}</span>
-                  <Badge variant="outline" className="text-xs border-gray-600 text-gray-300">
-                    {movie.genre}
-                  </Badge>
-                </div>
-                <p className="text-sm text-gray-400 line-clamp-2 mb-3">{movie.description}</p>
-
-                {movie.platforms && (
-                  <div className="flex gap-1 flex-wrap">
-                    {movie.platforms.map((platform) => (
-                      <Badge key={platform} variant="secondary" className="text-xs bg-gray-800 text-gray-300">
-                        {platform}
+                  {/* AI Confidence Badge for Recommendations */}
+                  {key === "recommendations" && movie.aiConfidence && (
+                    <div className="absolute top-2 right-2">
+                      <Badge
+                        className={`text-xs ${
+                          movie.aiConfidence >= 80
+                            ? "bg-green-500"
+                            : movie.aiConfidence >= 60
+                              ? "bg-yellow-500"
+                              : "bg-red-500"
+                        } text-white`}
+                      >
+                        {movie.aiConfidence}%
                       </Badge>
-                    ))}
+                    </div>
+                  )}
+
+                  {/* Rating Badge */}
+                  <div className="absolute bottom-2 left-2">
+                    <Badge className="bg-black/70 text-white text-xs">
+                      <Star className="w-3 h-3 mr-1 text-yellow-400 fill-current" />
+                      {movie.rating}
+                    </Badge>
                   </div>
-                )}
+                </div>
+
+                <div className="mt-2">
+                  <h3 className="text-white font-medium text-sm line-clamp-2">{movie.title}</h3>
+                  <p className="text-gray-400 text-xs">{movie.year}</p>
+                  {movie.genre && <p className="text-gray-500 text-xs">{movie.genre.slice(0, 2).join(", ")}</p>}
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
-  )
-}
+            ))}
+          </div>
 
-export function MovieCarousels() {
-  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null)
-  const [carouselData, setCarouselData] = useState<{ [key: string]: Movie[] }>({})
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const fetchCarouselData = async () => {
-      try {
-        const endpoints = [
-          { key: "trending", url: "/api/movies/trending" },
-          { key: "popular", url: "/api/movies/popular" },
-          { key: "newReleases", url: "/api/movies/new-releases" },
-          { key: "topRated", url: "/api/movies/top-rated" },
-          { key: "recommendations", url: "/api/recommendations" },
-          { key: "watchlist", url: "/api/watchlist/user" },
-        ]
-
-        const results = await Promise.all(
-          endpoints.map(async ({ key, url }) => {
-            try {
-              const response = await fetch(url)
-              if (!response.ok) throw new Error(`Failed to fetch ${key}`)
-              const data = await response.json()
-              return { key, data: data.movies || [] }
-            } catch (error) {
-              console.error(`Error fetching ${key}:`, error)
-              return { key, data: [] }
-            }
-          }),
-        )
-
-        const newCarouselData: { [key: string]: Movie[] } = {}
-        results.forEach(({ key, data }) => {
-          newCarouselData[key] = data
-        })
-
-        setCarouselData(newCarouselData)
-      } catch (error) {
-        console.error("Error fetching carousel data:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchCarouselData()
-  }, [])
-
-  const handleMovieClick = (movie: Movie) => {
-    setSelectedMovie(movie)
-  }
-
-  if (loading) {
-    return (
-      <div className="py-16 bg-black">
-        <div className="container mx-auto">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="mb-8">
-              <div className="h-8 bg-gray-800 rounded w-48 mb-4 mx-4 animate-pulse"></div>
-              <div className="flex gap-4 overflow-x-auto pb-4 px-4">
-                {[1, 2, 3, 4, 5].map((j) => (
-                  <div key={j} className="min-w-[280px] h-[500px] bg-gray-800 rounded-lg animate-pulse"></div>
-                ))}
-              </div>
-            </div>
-          ))}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/50 text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={() => scrollCarousel(key, "right")}
+          >
+            <ChevronRight className="w-6 h-6" />
+          </Button>
         </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="py-16 bg-black">
-      <div className="container mx-auto">
-        <MovieCarousel title="🔥 Trending Now" movies={carouselData.trending || []} onMovieClick={handleMovieClick} />
-        <MovieCarousel title="🌟 Popular Movies" movies={carouselData.popular || []} onMovieClick={handleMovieClick} />
-        <MovieCarousel
-          title="🆕 New Releases"
-          movies={carouselData.newReleases || []}
-          onMovieClick={handleMovieClick}
-        />
-        <MovieCarousel title="⭐ Top Rated" movies={carouselData.topRated || []} onMovieClick={handleMovieClick} />
-        <MovieCarousel
-          title="🤖 AI Recommendations"
-          movies={carouselData.recommendations || []}
-          onMovieClick={handleMovieClick}
-        />
-        <MovieCarousel title="📋 My Watchlist" movies={carouselData.watchlist || []} onMovieClick={handleMovieClick} />
-      </div>
-
-      {selectedMovie && (
-        <MoviePreviewModal movie={selectedMovie} isOpen={!!selectedMovie} onClose={() => setSelectedMovie(null)} />
       )}
     </div>
+  )
+
+  return (
+    <>
+      <div className="space-y-8">{Object.entries(carousels).map(([key, data]) => renderCarousel(key, data))}</div>
+
+      {/* Movie Detail Modal */}
+      <MovieDetailModal
+        isOpen={showMovieModal}
+        onClose={() => {
+          setShowMovieModal(false)
+          setSelectedMovieId(null)
+        }}
+        movieId={selectedMovieId}
+      />
+    </>
   )
 }

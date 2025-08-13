@@ -1,259 +1,405 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useRef } from "react"
+import { Search, Mic, Camera, Upload, Video, Music, X, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Search, Mic, ImageIcon, Upload, Video, Music, User, X, Camera, MicIcon, Loader2 } from "lucide-react"
-import { useSearchConfig } from "@/hooks/use-search-config"
-import { SearchPlaceholder } from "./search-placeholder"
+import { MovieDetailModal } from "./movie-detail-modal"
 
 interface SearchModalProps {
   isOpen: boolean
   onClose: () => void
 }
 
-export function SearchModal({ isOpen, onClose }: SearchModalProps) {
-  const [searchType, setSearchType] = useState<"text" | "voice" | "image" | "audio" | "video" | "face">("text")
-  const [query, setQuery] = useState("")
-  const [isRecording, setIsRecording] = useState(false)
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [showResults, setShowResults] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const { isPlaceholderMode } = useSearchConfig()
+interface SearchResult {
+  id: number
+  title: string
+  poster: string
+  year: number
+  rating: number
+}
 
-  const handleSearch = async (searchQuery: string, type: typeof searchType) => {
+interface SearchResponse {
+  success: boolean
+  results: SearchResult[]
+  searchType: string
+  confidenceScore: number
+  metadata: {
+    searchMethod: string
+    [key: string]: any
+  }
+  error?: string
+}
+
+export function SearchModal({ isOpen, onClose }: SearchModalProps) {
+  const [activeTab, setActiveTab] = useState<"text" | "voice" | "image" | "audio" | "video">("text")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchType, setSearchType] = useState<"scene" | "actor">("scene")
+  const [isSearching, setIsSearching] = useState(false)
+  const [searchResults, setSearchResults] = useState<SearchResponse | null>(null)
+  const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null)
+  const [showMovieModal, setShowMovieModal] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const recordedChunksRef = useRef<Blob[]>([])
+
+  const handleTextSearch = async () => {
     if (!searchQuery.trim()) return
 
-    setIsProcessing(true)
+    setIsSearching(true)
+    try {
+      const response = await fetch("/api/search/text", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: searchQuery, searchType }),
+      })
 
-    if (isPlaceholderMode) {
-      // Show placeholder after a brief delay
-      setTimeout(() => {
-        setIsProcessing(false)
-        setShowResults(true)
-      }, 1500)
+      const data: SearchResponse = await response.json()
+      setSearchResults(data)
+    } catch (error) {
+      console.error("Search error:", error)
+      setSearchResults({
+        success: false,
+        results: [],
+        searchType: "text",
+        confidenceScore: 0,
+        metadata: { searchMethod: "Text Search" },
+        error: "Search failed. Please try again.",
+      })
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  const handleVoiceSearch = async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert("Voice recording is not supported in your browser")
+      return
+    }
+
+    if (isRecording) {
+      // Stop recording
+      if (mediaRecorderRef.current) {
+        mediaRecorderRef.current.stop()
+      }
+      setIsRecording(false)
     } else {
-      // Real search implementation would go here
+      // Start recording
       try {
-        const response = await fetch(`/api/search/${type}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: searchQuery }),
-        })
-        const results = await response.json()
-        // Handle real results
-        setIsProcessing(false)
-        setShowResults(true)
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        const mediaRecorder = new MediaRecorder(stream)
+        mediaRecorderRef.current = mediaRecorder
+        recordedChunksRef.current = []
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            recordedChunksRef.current.push(event.data)
+          }
+        }
+
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(recordedChunksRef.current, { type: "audio/wav" })
+          await processVoiceSearch(audioBlob)
+          stream.getTracks().forEach((track) => track.stop())
+        }
+
+        mediaRecorder.start()
+        setIsRecording(true)
       } catch (error) {
-        console.error("Search error:", error)
-        setIsProcessing(false)
+        console.error("Error accessing microphone:", error)
+        alert("Could not access microphone")
       }
     }
   }
 
-  const handleVoiceSearch = () => {
-    setIsRecording(true)
-    // Simulate voice recording
-    setTimeout(() => {
-      setIsRecording(false)
-      const mockQuery = "action movies with superheroes"
-      setQuery(mockQuery)
-      handleSearch(mockQuery, "voice")
-    }, 3000)
-  }
+  const processVoiceSearch = async (audioBlob: Blob) => {
+    setIsSearching(true)
+    try {
+      const formData = new FormData()
+      formData.append("audio", audioBlob)
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      const mockQuery = `Uploaded ${searchType}: ${file.name}`
-      setQuery(mockQuery)
-      handleSearch(mockQuery, searchType)
+      const response = await fetch("/api/search/voice", {
+        method: "POST",
+        body: formData,
+      })
+
+      const data: SearchResponse = await response.json()
+      setSearchResults(data)
+    } catch (error) {
+      console.error("Voice search error:", error)
+      setSearchResults({
+        success: false,
+        results: [],
+        searchType: "voice",
+        confidenceScore: 0,
+        metadata: { searchMethod: "Voice Search" },
+        error: "Voice search failed. Please try again.",
+      })
+    } finally {
+      setIsSearching(false)
     }
   }
 
-  const searchTypes = [
-    { type: "text" as const, icon: <Search className="w-4 h-4" />, label: "Text Search" },
-    { type: "voice" as const, icon: <Mic className="w-4 h-4" />, label: "Voice Search" },
-    { type: "image" as const, icon: <ImageIcon className="w-4 h-4" />, label: "Image Search" },
-    { type: "audio" as const, icon: <Music className="w-4 h-4" />, label: "Audio Search" },
-    { type: "video" as const, icon: <Video className="w-4 h-4" />, label: "Video Search" },
-    { type: "face" as const, icon: <User className="w-4 h-4" />, label: "Face Recognition" },
-  ]
+  const handleFileUpload = async (file: File, type: "image" | "audio" | "video") => {
+    setIsSearching(true)
+    try {
+      const formData = new FormData()
+      formData.append(type, file)
+
+      const response = await fetch(`/api/search/${type}`, {
+        method: "POST",
+        body: formData,
+      })
+
+      const data: SearchResponse = await response.json()
+      setSearchResults(data)
+    } catch (error) {
+      console.error(`${type} search error:`, error)
+      setSearchResults({
+        success: false,
+        results: [],
+        searchType: type,
+        confidenceScore: 0,
+        metadata: { searchMethod: `${type.charAt(0).toUpperCase() + type.slice(1)} Search` },
+        error: `${type.charAt(0).toUpperCase() + type.slice(1)} search failed. Please try again.`,
+      })
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  const handleMovieClick = (movieId: number) => {
+    setSelectedMovieId(movieId)
+    setShowMovieModal(true)
+  }
+
+  const getConfidenceColor = (score: number) => {
+    if (score >= 80) return "bg-green-500"
+    if (score >= 60) return "bg-yellow-500"
+    return "bg-red-500"
+  }
 
   if (!isOpen) return null
 
-  if (showResults) {
-    return (
-      <div className="fixed inset-0 z-50">
-        <SearchPlaceholder searchType={searchType} query={query} />
-        <Button
-          onClick={() => {
-            setShowResults(false)
-            onClose()
-          }}
-          className="fixed top-4 right-4 z-60 bg-gray-800 hover:bg-gray-700"
-          size="sm"
-        >
-          <X className="w-4 h-4" />
-        </Button>
-      </div>
-    )
-  }
-
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl bg-gray-900 border-gray-700">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">Search Movies</h2>
-            <Button onClick={onClose} variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-              <X className="w-5 h-5" />
-            </Button>
+    <>
+      <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm">
+        <div className="flex items-center justify-center min-h-screen p-4">
+          <div className="w-full max-w-4xl bg-white rounded-lg shadow-xl max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b">
+              <h2 className="text-2xl font-bold text-gray-900">Search Movies</h2>
+              <Button variant="ghost" size="icon" onClick={onClose}>
+                <X className="w-6 h-6" />
+              </Button>
+            </div>
+
+            {/* Search Tabs */}
+            <div className="flex border-b">
+              {[
+                { id: "text", label: "Text", icon: Search },
+                { id: "voice", label: "Voice", icon: Mic },
+                { id: "image", label: "Image", icon: Camera },
+                { id: "audio", label: "Audio", icon: Music },
+                { id: "video", label: "Video", icon: Video },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`flex items-center space-x-2 px-6 py-4 border-b-2 font-medium transition-colors ${
+                    activeTab === tab.id
+                      ? "border-teal-500 text-teal-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Search Content */}
+            <div className="p-6">
+              {activeTab === "text" && (
+                <div className="space-y-4">
+                  <div className="flex space-x-4">
+                    <Button
+                      variant={searchType === "scene" ? "default" : "outline"}
+                      onClick={() => setSearchType("scene")}
+                    >
+                      Scene Description
+                    </Button>
+                    <Button
+                      variant={searchType === "actor" ? "default" : "outline"}
+                      onClick={() => setSearchType("actor")}
+                    >
+                      Actor/Actress
+                    </Button>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Input
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder={
+                        searchType === "scene"
+                          ? "Describe a scene: 'futuristic city with flying cars'"
+                          : "Enter actor name: 'Ryan Gosling'"
+                      }
+                      onKeyPress={(e) => e.key === "Enter" && handleTextSearch()}
+                      className="flex-1"
+                    />
+                    <Button onClick={handleTextSearch} disabled={isSearching || !searchQuery.trim()}>
+                      {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "voice" && (
+                <div className="text-center space-y-4">
+                  <p className="text-gray-600">Describe the movie you're looking for using your voice</p>
+                  <Button
+                    onClick={handleVoiceSearch}
+                    disabled={isSearching}
+                    className={`px-8 py-4 ${isRecording ? "bg-red-500 hover:bg-red-600" : ""}`}
+                  >
+                    {isSearching ? (
+                      <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                    ) : (
+                      <Mic className={`w-6 h-6 mr-2 ${isRecording ? "animate-pulse" : ""}`} />
+                    )}
+                    {isRecording ? "Stop Recording" : "Start Voice Search"}
+                  </Button>
+                </div>
+              )}
+
+              {(activeTab === "image" || activeTab === "audio" || activeTab === "video") && (
+                <div className="text-center space-y-4">
+                  <p className="text-gray-600">
+                    Upload a {activeTab} file to search for movies
+                    {activeTab === "image" && " (screenshot, poster, or scene)"}
+                    {activeTab === "audio" && " (soundtrack, dialogue, or sound effect)"}
+                    {activeTab === "video" && " (movie clip or trailer)"}
+                  </p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={activeTab === "image" ? "image/*" : activeTab === "audio" ? "audio/*" : "video/*"}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        handleFileUpload(file, activeTab as "image" | "audio" | "video")
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <Button onClick={() => fileInputRef.current?.click()} disabled={isSearching} className="px-8 py-4">
+                    {isSearching ? (
+                      <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                    ) : (
+                      <Upload className="w-6 h-6 mr-2" />
+                    )}
+                    Upload {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+                  </Button>
+                </div>
+              )}
+
+              {/* Search Results */}
+              {searchResults && (
+                <div className="mt-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">Search Results</h3>
+                    {searchResults.confidenceScore > 0 && (
+                      <Badge className={`${getConfidenceColor(searchResults.confidenceScore)} text-white`}>
+                        {searchResults.confidenceScore}% Match
+                        {searchResults.confidenceScore < 60 && " ⚠️"}
+                      </Badge>
+                    )}
+                  </div>
+
+                  {searchResults.metadata && (
+                    <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-600">
+                        <strong>Search Method:</strong> {searchResults.metadata.searchMethod}
+                      </p>
+                      {searchResults.metadata.transcribedText && (
+                        <p className="text-sm text-gray-600">
+                          <strong>Transcribed:</strong> "{searchResults.metadata.transcribedText}"
+                        </p>
+                      )}
+                      {searchResults.metadata.detectedObjects && (
+                        <p className="text-sm text-gray-600">
+                          <strong>Detected:</strong> {searchResults.metadata.detectedObjects.join(", ")}
+                        </p>
+                      )}
+                      {searchResults.metadata.recognizedTrack && (
+                        <p className="text-sm text-gray-600">
+                          <strong>Recognized:</strong> {searchResults.metadata.recognizedTrack}
+                        </p>
+                      )}
+                      {searchResults.metadata.detectedScenes && (
+                        <p className="text-sm text-gray-600">
+                          <strong>Scenes:</strong> {searchResults.metadata.detectedScenes.join(", ")}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {searchResults.success && searchResults.results.length > 0 ? (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {searchResults.results.map((movie) => (
+                        <Card
+                          key={movie.id}
+                          className="cursor-pointer hover:shadow-lg transition-shadow"
+                          onClick={() => handleMovieClick(movie.id)}
+                        >
+                          <CardContent className="p-0">
+                            <img
+                              src={movie.poster || "/placeholder.svg"}
+                              alt={movie.title}
+                              className="w-full h-48 object-cover rounded-t-lg"
+                            />
+                            <div className="p-3">
+                              <h4 className="font-medium text-sm mb-1 line-clamp-2">{movie.title}</h4>
+                              <p className="text-gray-500 text-xs mb-1">{movie.year}</p>
+                              <div className="flex items-center space-x-1">
+                                <span className="text-yellow-500">★</span>
+                                <span className="text-xs text-gray-600">{movie.rating}</span>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500">
+                        {searchResults.error || "No movies found. Try a different search term or method."}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
+        </div>
+      </div>
 
-          {/* Search Type Selector */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-6">
-            {searchTypes.map(({ type, icon, label }) => (
-              <Button
-                key={type}
-                onClick={() => setSearchType(type)}
-                variant={searchType === type ? "default" : "outline"}
-                className={`flex items-center gap-2 ${
-                  searchType === type
-                    ? "bg-teal-600 hover:bg-teal-700"
-                    : "border-gray-600 text-gray-300 hover:bg-gray-800"
-                }`}
-              >
-                {icon}
-                <span className="hidden sm:inline">{label}</span>
-              </Button>
-            ))}
-          </div>
-
-          {/* Search Input */}
-          {searchType === "text" && (
-            <div className="flex gap-2 mb-4">
-              <Input
-                placeholder="Search for movies, actors, genres..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSearch(query, "text")}
-                className="bg-gray-800 border-gray-600 text-white placeholder-gray-400"
-              />
-              <Button
-                onClick={() => handleSearch(query, "text")}
-                disabled={isProcessing}
-                className="bg-teal-600 hover:bg-teal-700"
-              >
-                {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-              </Button>
-            </div>
-          )}
-
-          {/* Voice Search */}
-          {searchType === "voice" && (
-            <div className="text-center mb-4">
-              <Button
-                onClick={handleVoiceSearch}
-                disabled={isRecording || isProcessing}
-                className={`w-32 h-32 rounded-full ${
-                  isRecording ? "bg-red-600 hover:bg-red-700 animate-pulse" : "bg-teal-600 hover:bg-teal-700"
-                }`}
-              >
-                {isRecording ? (
-                  <div className="flex flex-col items-center">
-                    <MicIcon className="w-8 h-8 mb-2" />
-                    <span className="text-sm">Listening...</span>
-                  </div>
-                ) : isProcessing ? (
-                  <Loader2 className="w-8 h-8 animate-spin" />
-                ) : (
-                  <div className="flex flex-col items-center">
-                    <Mic className="w-8 h-8 mb-2" />
-                    <span className="text-sm">Tap to speak</span>
-                  </div>
-                )}
-              </Button>
-              <p className="text-gray-400 mt-4">
-                {isRecording
-                  ? "Listening for your voice..."
-                  : "Tap the microphone and describe the movie you're looking for"}
-              </p>
-            </div>
-          )}
-
-          {/* File Upload for Image/Audio/Video */}
-          {["image", "audio", "video"].includes(searchType) && (
-            <div className="text-center mb-4">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept={searchType === "image" ? "image/*" : searchType === "audio" ? "audio/*" : "video/*"}
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-              <Button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isProcessing}
-                className="w-full bg-teal-600 hover:bg-teal-700 p-8"
-              >
-                {isProcessing ? (
-                  <Loader2 className="w-8 h-8 animate-spin" />
-                ) : (
-                  <div className="flex flex-col items-center">
-                    <Upload className="w-8 h-8 mb-2" />
-                    <span>Upload {searchType === "image" ? "Image" : searchType === "audio" ? "Audio" : "Video"}</span>
-                  </div>
-                )}
-              </Button>
-              <p className="text-gray-400 mt-4">
-                Upload{" "}
-                {searchType === "image"
-                  ? "a movie poster or scene"
-                  : searchType === "audio"
-                    ? "a soundtrack or dialogue clip"
-                    : "a movie trailer or scene"}
-              </p>
-            </div>
-          )}
-
-          {/* Face Recognition */}
-          {searchType === "face" && (
-            <div className="text-center mb-4">
-              <Button
-                onClick={() => {
-                  const mockQuery = "Face recognition search initiated"
-                  setQuery(mockQuery)
-                  handleSearch(mockQuery, "face")
-                }}
-                disabled={isProcessing}
-                className="w-full bg-teal-600 hover:bg-teal-700 p-8"
-              >
-                {isProcessing ? (
-                  <Loader2 className="w-8 h-8 animate-spin" />
-                ) : (
-                  <div className="flex flex-col items-center">
-                    <Camera className="w-8 h-8 mb-2" />
-                    <span>Start Face Recognition</span>
-                  </div>
-                )}
-              </Button>
-              <p className="text-gray-400 mt-4">Use your camera to find movies featuring specific actors</p>
-            </div>
-          )}
-
-          {/* Status Badge */}
-          <div className="flex justify-center">
-            <Badge className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white">
-              🚀 AI-Powered Search Coming Soon
-            </Badge>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+      {/* Movie Detail Modal */}
+      <MovieDetailModal
+        isOpen={showMovieModal}
+        onClose={() => {
+          setShowMovieModal(false)
+          setSelectedMovieId(null)
+        }}
+        movieId={selectedMovieId}
+        searchType={searchResults?.metadata.searchMethod}
+        confidenceScore={searchResults?.confidenceScore}
+      />
+    </>
   )
 }
