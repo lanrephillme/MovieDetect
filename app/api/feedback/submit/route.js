@@ -2,27 +2,28 @@ import { NextResponse } from "next/server"
 
 export async function POST(request) {
   try {
-    const { movieId, searchType, confidence, feedback } = await request.json()
+    const { movieId, searchType, confidence, feedback, helpful } = await request.json()
 
-    if (!movieId || !feedback?.trim()) {
+    if (!feedback?.trim()) {
       return NextResponse.json(
         {
           success: false,
-          error: "Movie ID and feedback are required",
+          error: "Feedback content is required",
         },
         { status: 400 },
       )
     }
 
-    // TODO: Save feedback to database for AI model improvement
+    // TODO: Save feedback to database for AI improvement
     // const userId = await getUserIdFromSession(request)
     // await db.feedback.create({
     //   data: {
-    //     userId,
-    //     movieId,
-    //     searchType,
-    //     confidence,
-    //     feedback: feedback.trim(),
+    //     userId: userId,
+    //     movieId: movieId,
+    //     searchType: searchType,
+    //     confidence: confidence,
+    //     feedback: feedback,
+    //     helpful: helpful,
     //     createdAt: new Date()
     //   }
     // })
@@ -33,18 +34,23 @@ export async function POST(request) {
     //   searchType,
     //   confidence,
     //   feedback,
-    //   timestamp: new Date()
+    //   helpful,
+    //   timestamp: new Date().toISOString()
     // })
 
-    console.log(`Feedback received for movie ${movieId}:`, {
+    // Mock feedback save
+    console.log("Feedback received:", {
+      movieId,
       searchType,
       confidence,
-      feedback: feedback.trim(),
+      feedback,
+      helpful,
     })
 
     return NextResponse.json({
       success: true,
-      message: "Feedback submitted successfully",
+      message: "Thank you for your feedback! This helps us improve our AI accuracy.",
+      feedbackId: Math.random().toString(36).substr(2, 9),
     })
   } catch (error) {
     console.error("Error submitting feedback:", error)
@@ -52,6 +58,7 @@ export async function POST(request) {
       {
         success: false,
         error: "Failed to submit feedback",
+        details: error.message,
       },
       { status: 500 },
     )

@@ -17,17 +17,24 @@ export async function POST(request) {
     // TODO: Save user rating to database
     // const userId = await getUserIdFromSession(request)
     // await db.rating.upsert({
-    //   where: { userId_movieId: { userId, movieId } },
-    //   update: { rating, updatedAt: new Date() },
-    //   create: { userId, movieId, rating }
+    //   where: {
+    //     userId_movieId: {
+    //       userId: userId,
+    //       movieId: movieId
+    //     }
+    //   },
+    //   update: {
+    //     rating: rating,
+    //     updatedAt: new Date()
+    //   },
+    //   create: {
+    //     userId: userId,
+    //     movieId: movieId,
+    //     rating: rating
+    //   }
     // })
 
-    // TODO: Update movie's average rating
-    // const avgRating = await db.rating.aggregate({
-    //   where: { movieId },
-    //   _avg: { rating: true }
-    // })
-
+    // Mock rating save
     console.log(`User rated movie ${movieId} with ${rating} stars`)
 
     return NextResponse.json({
@@ -42,6 +49,7 @@ export async function POST(request) {
       {
         success: false,
         error: "Failed to save rating",
+        details: error.message,
       },
       { status: 500 },
     )
