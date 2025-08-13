@@ -4,16 +4,6 @@ export async function POST(request) {
   try {
     const { originalQuery, searchType, reason } = await request.json()
 
-    if (!originalQuery) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Original query is required for alternatives",
-        },
-        { status: 400 },
-      )
-    }
-
     // TODO: Use AI to generate alternative suggestions based on failed search
     // const aiResponse = await fetch(`${process.env.CUSTOM_AI_API_URL}/alternatives`, {
     //   method: 'POST',
@@ -22,51 +12,35 @@ export async function POST(request) {
     //     'Content-Type': 'application/json'
     //   },
     //   body: JSON.stringify({
-    //     originalQuery,
+    //     query: originalQuery,
     //     searchType,
-    //     reason,
-    //     context: 'no_results_found'
+    //     reason
     //   })
     // })
-    // const aiData = await aiResponse.json()
 
-    // Mock alternative suggestions
+    // Mock alternative suggestions for demo
     const suggestions = [
       {
-        id: 901,
+        id: 101,
         title: "Similar Movie Suggestion 1",
-        poster: "/blade-runner-2049-poster.png",
-        rating: 7.8,
-        year: 2019,
-        genre: ["Sci-Fi", "Drama"],
-        synopsis: "AI suggested this movie based on your search criteria and viewing patterns.",
-        confidence: 65,
-        matchReason: `Alternative suggestion based on "${originalQuery}" - similar themes and style`,
-        suggestionType: "ai_alternative",
-      },
-      {
-        id: 902,
-        title: "Popular Alternative",
-        poster: "/matrix-movie-poster.png",
-        rating: 8.2,
+        poster: "/placeholder.svg",
+        rating: 7.5,
         year: 2020,
-        genre: ["Action", "Thriller"],
-        synopsis: "This popular movie might interest you based on your search.",
-        confidence: 58,
-        matchReason: "Popular movie in similar genre categories",
-        suggestionType: "popularity_based",
+        genre: ["Drama", "Thriller"],
+        description: "AI suggested this movie based on your search criteria.",
+        confidence: 65,
+        matchReason: "Alternative suggestion based on similar themes and elements",
       },
       {
-        id: 903,
-        title: "Genre Match",
-        poster: "/inception-movie-poster.png",
-        rating: 7.9,
-        year: 2021,
-        genre: ["Mystery", "Thriller"],
-        synopsis: "Movies in similar genres that other users enjoyed.",
-        confidence: 62,
-        matchReason: "Genre similarity and user preference matching",
-        suggestionType: "genre_based",
+        id: 102,
+        title: "Similar Movie Suggestion 2",
+        poster: "/placeholder.svg",
+        rating: 8.1,
+        year: 2019,
+        genre: ["Action", "Sci-Fi"],
+        description: "This movie shares similar characteristics with your search.",
+        confidence: 58,
+        matchReason: "AI-generated alternative based on search patterns",
       },
     ]
 
@@ -76,8 +50,6 @@ export async function POST(request) {
       originalQuery,
       searchType,
       reason,
-      message: "We couldn't find exact matches, but here are some alternatives you might enjoy",
-      total: suggestions.length,
     })
   } catch (error) {
     console.error("Error generating alternatives:", error)
@@ -85,7 +57,6 @@ export async function POST(request) {
       {
         success: false,
         error: "Failed to generate alternative suggestions",
-        details: error.message,
       },
       { status: 500 },
     )

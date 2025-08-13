@@ -21,7 +21,7 @@ export async function GET(request, { params }) {
     // })
 
     // Mock response for demo
-    const inWatchlist = Math.random() > 0.5 // Random for demo
+    const inWatchlist = Math.random() > 0.7 // Random for demo
 
     return NextResponse.json({
       success: true,
@@ -34,7 +34,6 @@ export async function GET(request, { params }) {
       {
         success: false,
         error: "Failed to check watchlist status",
-        details: error.message,
       },
       { status: 500 },
     )
