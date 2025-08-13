@@ -11,8 +11,12 @@ import { SearchModal } from "@/components/search-modal"
 
 export default function HomePage() {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchType, setSearchType] = useState("")
 
-  const handleSearchClick = () => {
+  const handleSearchClick = (query?: string, type?: string) => {
+    if (query) setSearchQuery(query)
+    if (type) setSearchType(type)
     setIsSearchModalOpen(true)
   }
 
@@ -25,7 +29,12 @@ export default function HomePage() {
       <Footer />
       <ScrollToTop />
 
-      <SearchModal isOpen={isSearchModalOpen} onClose={() => setIsSearchModalOpen(false)} />
+      <SearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        searchQuery={searchQuery}
+        searchType={searchType}
+      />
     </div>
   )
 }

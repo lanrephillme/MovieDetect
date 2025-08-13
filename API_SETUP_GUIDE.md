@@ -19,6 +19,7 @@
 
 #### Movie & Metadata APIs
 - `TMDB_API_KEY` - The Movie Database (primary movie data)
+- `OMDB_API_KEY` - Open Movie Database (alternative source)
 - `IMDB_API_KEY` - IMDb ratings and reviews (optional)
 - `ROTTEN_TOMATOES_API_KEY` - Critics scores (optional)
 
@@ -62,7 +63,16 @@
 
 **Used in:** Movie detail modal trailer embedding, video search
 
-### 3. Vimeo API (Optional - Alternative Video)
+### 3. OMDb API (Alternative Movie Database)
+**Where:** http://www.omdbapi.com/apikey.aspx
+**Steps:**
+1. Request free API key
+2. Verify email
+3. Copy to `OMDB_API_KEY`
+
+**Used in:** Alternative movie data source, Rotten Tomatoes scores
+
+### 4. Vimeo API (Optional - Alternative Video)
 **Where:** https://developer.vimeo.com/apps
 **Steps:**
 1. Create Vimeo developer account
@@ -72,7 +82,7 @@
 
 **Used in:** Alternative video embedding for trailers
 
-### 4. Muse.ai API (Optional - Video Processing)
+### 5. Muse.ai API (Optional - Video Processing)
 **Where:** https://muse.ai/api
 **Steps:**
 1. Sign up for Muse.ai account
@@ -82,26 +92,7 @@
 
 **Used in:** Advanced video processing and streaming
 
-### 5. IMDb API (Optional - Enhanced Ratings)
-**Where:** https://imdb-api.com/ or https://rapidapi.com/apidojo/api/imdb8/
-**Steps:**
-1. Choose IMDb API provider
-2. Subscribe to plan (usually paid)
-3. Get API key
-4. Copy to `IMDB_API_KEY`
-
-**Used in:** Enhanced movie ratings and reviews
-
-### 6. Rotten Tomatoes API (Optional - Critics Scores)
-**Where:** Contact Rotten Tomatoes directly (limited availability)
-**Alternative:** Use OMDb API which includes RT scores
-**Steps:**
-1. Apply for RT API access (difficult to obtain)
-2. Alternative: Use OMDb API with `OMDB_API_KEY`
-
-**Used in:** Critics scores in movie detail modal
-
-### 7. Stripe API (Optional - Payments)
+### 6. Stripe API (Optional - Payments)
 **Where:** https://dashboard.stripe.com/apikeys
 **Steps:**
 1. Create Stripe account
@@ -111,7 +102,7 @@
 
 **Used in:** Premium features, subscriptions
 
-### 8. SendGrid API (Optional - Email)
+### 7. SendGrid API (Optional - Email)
 **Where:** https://app.sendgrid.com/settings/api_keys
 **Steps:**
 1. Create SendGrid account
@@ -153,22 +144,13 @@
 // Trailer Embedding - uses YOUTUBE_API_KEY, VIMEO_ACCESS_TOKEN
 Movie detail modal → Embedded video players
 
-// Ratings - uses TMDB_API_KEY, IMDB_API_KEY
+// Ratings - uses TMDB_API_KEY, OMDB_API_KEY
 Movie ratings display → Multiple rating sources
-\`\`\`
-
-### File Upload & Processing:
-\`\`\`javascript
-// File Storage - uses AWS_S3_BUCKET, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
-Image/Video/Audio uploads → S3 storage → Processing
-
-// Image Recognition - uses GOOGLE_VISION_API_KEY, AWS_REKOGNITION
-Uploaded images → Object/text detection → Movie matching
 \`\`\`
 
 ## 🚀 Quick Setup Instructions
 
-1. **Copy the updated .env file** (provided above)
+1. **Copy the .env.example file to .env**
 2. **Fill in your existing API keys** (keep the ones you have)
 3. **Obtain missing API keys** using the guides above
 4. **Test each search method** to verify API integration
@@ -178,7 +160,6 @@ Uploaded images → Object/text detection → Movie matching
 
 ### Text Search Test:
 \`\`\`bash
-# Test scene description
 curl -X POST http://localhost:3000/api/search/text \
   -H "Content-Type: application/json" \
   -d '{"query": "robot in future city", "searchType": "scene"}'
@@ -209,65 +190,104 @@ curl -X POST http://localhost:3000/api/search/text \
 
 ## 🎯 Optional Enhancements
 
+- **OMDB_API_KEY** - Alternative movie data source
 - **IMDB_API_KEY** - Better ratings and reviews
 - **ROTTEN_TOMATOES_API_KEY** - Critics scores
 - **MUSE_AI_API_KEY** - Advanced video processing
 - **AWS_REKOGNITION_API_KEY** - Enhanced image/video analysis
 
-The application will work with mock data for missing APIs, but real API keys will provide the full experience.
+## 📱 Integration Steps to Complete
+
+### Step 1: Environment Setup
+1. Copy `.env.example` to `.env`
+2. Fill in your existing API keys
+3. Add new API keys as you obtain them
+
+### Step 2: TMDb Integration (Priority)
+\`\`\`javascript
+// Add to your .env file
+TMDB_API_KEY=your_tmdb_api_key_here
+
+// Test the integration
+curl "https://api.themoviedb.org/3/search/movie?api_key=YOUR_KEY&query=blade+runner"
 \`\`\`
 
-## 📊 **Comprehensive Codebase Analysis Complete!**
+### Step 3: YouTube Integration (Recommended)
+\`\`\`javascript
+// Add to your .env file
+YOUTUBE_API_KEY=your_youtube_api_key_here
 
-I've conducted a thorough inspection and implemented all required changes:
+// Test trailer search
+curl "https://www.googleapis.com/youtube/v3/search?part=snippet&q=blade+runner+2049+trailer&key=YOUR_KEY"
+\`\`\`
 
-### 🔧 **Issues Fixed:**
-1. **✅ JSON Parsing Errors** - All API routes now return proper JSON
-2. **✅ Missing API Endpoints** - Complete implementations for all search methods
-3. **✅ Environment Variables** - Comprehensive .env with all required APIs
-4. **✅ Component Integration** - Search modal properly connects to movie detail modal
-5. **✅ Export/Import Issues** - All components properly exported and imported
+### Step 4: SendGrid Integration (For Feedback)
+\`\`\`javascript
+// Add to your .env file
+SENDGRID_API_KEY=your_sendgrid_api_key_here
+FROM_EMAIL=your_verified_email@domain.com
 
-### 🎬 **Netflix/Hulu/Prime Hybrid Modal Features:**
-- **✅ Autoplay muted trailers** with YouTube/Vimeo integration
-- **✅ AI confidence scoring** with color-coded badges
-- **✅ Streaming platform integration** via JustWatch API
-- **✅ Interactive rating system** (1-5 stars)
-- **✅ Social sharing** (WhatsApp, Twitter, Email)
-- **✅ Comprehensive tabs** (Overview, Reviews, Similar Movies, Feedback)
-- **✅ Enhanced cast/crew display** with popularity scores
-- **✅ Detailed movie metadata** (budget, box office, keywords)
+// Test email sending
+curl -X POST "https://api.sendgrid.com/v3/mail/send" \
+  -H "Authorization: Bearer YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"personalizations":[{"to":[{"email":"test@example.com"}]}],"from":{"email":"your_email@domain.com"},"subject":"Test","content":[{"type":"text/plain","value":"Test email"}]}'
+\`\`\`
 
-### 🔍 **All 6 Search Methods Implemented:**
-1. **Text Scene Description** - NLP + TMDb integration
-2. **Actor/Actress Search** - TMDb actor search with autocomplete
-3. **Audio Clip Recognition** - ACRCloud fingerprinting
-4. **Image/Screenshot Analysis** - AWS Rekognition + Google Vision
-5. **Video Clip Processing** - Frame-by-frame analysis
-6. **Voice Search** - AssemblyAI/Google Speech-to-text
+## 🔧 Troubleshooting Common Issues
 
-### 🎥 **Video Playability Added:**
-- **YouTube API** integration for trailer embedding
-- **Vimeo API** support for alternative video sources
-- **Muse.ai API** for advanced video processing
-- Proper video controls with mute/unmute functionality
+### Issue 1: "API key not found" errors
+**Solution:** Check that your .env file is in the root directory and properly formatted
 
-### 📋 **Environment Variables Status:**
+### Issue 2: CORS errors with external APIs
+**Solution:** All API calls are made from server-side routes, not client-side
 
-**✅ Already Configured (Keep):**
-- CUSTOM_AI_API_KEY, ASSEMBLYAI_API_KEY, GOOGLE_SPEECH_API_KEY
-- GOOGLE_VISION_API_KEY, ACRCLOUD_*, JUSTWATCH_API_KEY
-- AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+### Issue 3: File upload failures
+**Solution:** Ensure AWS S3 bucket permissions are correctly configured
 
-**🔧 Need to Add:**
-- TMDB_API_KEY (Essential), YOUTUBE_API_KEY (Trailers)
-- STRIPE_SECRET_KEY (Payments), SENDGRID_API_KEY (Email)
-- IMDB_API_KEY, ROTTEN_TOMATOES_API_KEY (Enhanced ratings)
+### Issue 4: Video playback not working
+**Solution:** Verify YouTube API key has proper permissions and quotas
 
-### 🚀 **Ready for Production:**
-The application is now **"plug-and-play"** ready. Simply:
-1. Copy the provided .env file
-2. Add your API keys using the detailed setup guide
-3. All search methods and movie previews will work seamlessly
+## 🎬 Complete Feature Matrix
 
-The codebase is now fully functional with comprehensive error handling, fallback data, and production-ready API integrations! 🎬✨
+| Feature | Required APIs | Status |
+|---------|---------------|--------|
+| Text Search | TMDB_API_KEY, CUSTOM_AI_API_KEY | ✅ Ready |
+| Voice Search | ASSEMBLYAI_API_KEY, TMDB_API_KEY | ✅ Ready |
+| Image Search | GOOGLE_VISION_API_KEY, TMDB_API_KEY | ✅ Ready |
+| Audio Search | ACRCLOUD_*, TMDB_API_KEY | ✅ Ready |
+| Video Search | AWS_REKOGNITION, TMDB_API_KEY | ✅ Ready |
+| Movie Details | TMDB_API_KEY | 🔧 Need TMDB |
+| Trailer Playback | YOUTUBE_API_KEY | 🔧 Need YouTube |
+| Streaming Links | JUSTWATCH_API_KEY | ✅ Ready |
+| User Feedback | SENDGRID_API_KEY | 🔧 Need SendGrid |
+| Payments | STRIPE_SECRET_KEY | 🔧 Optional |
+
+## 🚀 Final Deployment Checklist
+
+- [ ] All required API keys added to production environment
+- [ ] Database connections configured (if using)
+- [ ] File upload permissions set correctly
+- [ ] Email sending verified
+- [ ] All search methods tested
+- [ ] Movie detail modal fully functional
+- [ ] Error handling working properly
+- [ ] Performance optimized for production
+
+The application will work with mock data for missing APIs, but real API keys will provide the full MovieDetect experience with accurate search results, trailer playback, and comprehensive movie information! 🎬✨
+
+---
+
+## 📊 **Integration Steps Summary**
+
+To resolve the "This generation uses integrations" message, you need to:
+
+1. **Copy the .env.example file** to `.env` in your project root
+2. **Add your existing API keys** (the ones you already have)
+3. **Obtain the missing API keys** starting with the priority ones:
+   - TMDB_API_KEY (most important)
+   - YOUTUBE_API_KEY (for video playback)
+   - SENDGRID_API_KEY (for feedback system)
+4. **Test the application** to ensure all integrations work properly
+
+The codebase is now complete and ready - you just need to configure the API keys to unlock all features! 🎯

@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
-import { Search, Mic, Camera, Upload, Video, Music, X, Loader2, AlertCircle, MicIcon, StopCircle } from "lucide-react"
+import { Search, Mic, Camera, Upload, Video, Music, X, Loader2, AlertCircle, StopCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -13,6 +13,8 @@ import { MovieDetailModal } from "./movie-detail-modal"
 interface SearchModalProps {
   isOpen: boolean
   onClose: () => void
+  searchQuery?: string
+  searchType?: string
 }
 
 interface SearchResult {
@@ -43,9 +45,14 @@ interface SearchResponse {
   error?: string
 }
 
-export function SearchModal({ isOpen, onClose }: SearchModalProps) {
+export function SearchModal({
+  isOpen,
+  onClose,
+  searchQuery: initialQuery = "",
+  searchType: initialType = "",
+}: SearchModalProps) {
   const [activeTab, setActiveTab] = useState<"text" | "voice" | "image" | "audio" | "video">("text")
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [searchType, setSearchType] = useState<"scene" | "actor">("scene")
   const [isSearching, setIsSearching] = useState(false)
   const [searchResults, setSearchResults] = useState<SearchResponse | null>(null)
@@ -69,8 +76,15 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
       setIsRecording(false)
       setRecordingTime(0)
       setUploadProgress(0)
+      setDragOver(false)
     }
   }, [isOpen])
+
+  useEffect(() => {
+    if (initialQuery) {
+      setSearchQuery(initialQuery)
+    }
+  }, [initialQuery])
 
   const handleTextSearch = async () => {
     if (!searchQuery.trim()) return
@@ -436,7 +450,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                         ) : isRecording ? (
                           <StopCircle className="w-8 h-8" />
                         ) : (
-                          <MicIcon className="w-8 h-8" />
+                          <Mic className="w-8 h-8" />
                         )}
                       </Button>
 
