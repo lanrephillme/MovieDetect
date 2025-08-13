@@ -2,17 +2,17 @@ import { NextResponse } from "next/server"
 
 export async function GET() {
   try {
-    // Mock top rated movies data
-    const topRatedMovies = [
+    const movies = [
       {
         id: 19,
         title: "The Dark Knight",
         poster: "/dark-knight-poster.png",
         rating: 9.0,
         year: 2008,
-        genre: ["Action", "Crime"],
-        trailer: "https://example.com/darkknight-trailer.mp4",
-        description: "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham.",
+        genre: "Action",
+        duration: "152 min",
+        description:
+          "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.",
       },
       {
         id: 20,
@@ -20,9 +20,10 @@ export async function GET() {
         poster: "/pulp-fiction-poster.png",
         rating: 8.9,
         year: 1994,
-        genre: ["Crime", "Drama"],
-        trailer: "https://example.com/pulpfiction-trailer.mp4",
-        description: "The lives of two mob hitmen, a boxer, a gangster and his wife intertwine.",
+        genre: "Crime",
+        duration: "154 min",
+        description:
+          "The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.",
       },
       {
         id: 21,
@@ -30,9 +31,10 @@ export async function GET() {
         poster: "/inception-movie-poster.png",
         rating: 8.8,
         year: 2010,
-        genre: ["Sci-Fi", "Thriller"],
-        trailer: "https://example.com/inception-trailer.mp4",
-        description: "A thief who steals corporate secrets through dream-sharing technology.",
+        genre: "Sci-Fi",
+        duration: "148 min",
+        description:
+          "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
       },
       {
         id: 22,
@@ -40,9 +42,10 @@ export async function GET() {
         poster: "/matrix-movie-poster.png",
         rating: 8.7,
         year: 1999,
-        genre: ["Sci-Fi", "Action"],
-        trailer: "https://example.com/matrix-trailer.mp4",
-        description: "A computer programmer is led to fight an underground war against powerful computers.",
+        genre: "Sci-Fi",
+        duration: "136 min",
+        description:
+          "When a beautiful stranger leads computer hacker Neo to a forbidding underworld, he discovers the shocking truth--the life he knows is the elaborate deception of an evil cyber-intelligence.",
       },
       {
         id: 23,
@@ -50,9 +53,10 @@ export async function GET() {
         poster: "/goodfellas-poster.png",
         rating: 8.7,
         year: 1990,
-        genre: ["Crime", "Drama"],
-        trailer: "https://example.com/goodfellas-trailer.mp4",
-        description: "The story of Henry Hill and his life in the mob.",
+        genre: "Crime",
+        duration: "146 min",
+        description:
+          "The story of Henry Hill and his life in the mob, covering his relationship with his wife Karen Hill and his mob partners Jimmy Conway and Tommy DeVito.",
       },
       {
         id: 24,
@@ -60,8 +64,8 @@ export async function GET() {
         poster: "/interstellar-inspired-poster.png",
         rating: 8.6,
         year: 2014,
-        genre: ["Sci-Fi", "Drama"],
-        trailer: "https://example.com/interstellar-trailer.mp4",
+        genre: "Sci-Fi",
+        duration: "169 min",
         description:
           "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
       },
@@ -69,17 +73,11 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      data: topRatedMovies,
-      total: topRatedMovies.length,
+      data: movies,
+      total: movies.length,
     })
   } catch (error) {
-    console.error("Error fetching top rated movies:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to fetch top rated movies",
-      },
-      { status: 500 },
-    )
+    console.error("Error in top rated movies API:", error)
+    return NextResponse.json({ success: false, error: "Failed to fetch top rated movies" }, { status: 500 })
   }
 }

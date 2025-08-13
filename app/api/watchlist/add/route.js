@@ -2,38 +2,29 @@ import { NextResponse } from "next/server"
 
 export async function POST(request) {
   try {
-    const { movieId, movie } = await request.json()
+    const { movieId, userId } = await request.json()
 
-    if (!movieId || !movie) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Movie ID and movie data are required",
-        },
-        { status: 400 },
-      )
+    if (!movieId) {
+      return NextResponse.json({ success: false, error: "Movie ID is required" }, { status: 400 })
     }
 
-    // In a real app, you would save this to a database
+    // In a real app, you would save to database
     // For now, we'll simulate a successful addition
-    console.log(`Adding movie ${movieId} to watchlist:`, movie)
+    const watchlistItem = {
+      id: Date.now(),
+      movieId,
+      userId: userId || "demo-user",
+      addedDate: new Date().toISOString(),
+      watchStatus: "not_started",
+    }
 
     return NextResponse.json({
       success: true,
       message: "Movie added to watchlist successfully",
-      data: {
-        movieId,
-        addedAt: new Date().toISOString(),
-      },
+      data: watchlistItem,
     })
   } catch (error) {
-    console.error("Error adding movie to watchlist:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to add movie to watchlist",
-      },
-      { status: 500 },
-    )
+    console.error("Error adding to watchlist:", error)
+    return NextResponse.json({ success: false, error: "Failed to add movie to watchlist" }, { status: 500 })
   }
 }

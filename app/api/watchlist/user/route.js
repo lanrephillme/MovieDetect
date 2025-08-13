@@ -2,86 +2,84 @@ import { NextResponse } from "next/server"
 
 export async function GET() {
   try {
-    // Mock user watchlist data
-    const watchlistMovies = [
+    const movies = [
       {
         id: 31,
         title: "Dune: Part Two",
         poster: "/dune-part-two-poster.png",
         rating: 8.8,
         year: 2024,
-        genre: ["Sci-Fi", "Adventure"],
-        trailer: "https://example.com/dune2-trailer.mp4",
+        genre: "Sci-Fi",
+        duration: "166 min",
         description:
           "Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family.",
+        watchStatus: "not_started",
         addedDate: "2024-01-15",
-        watched: false,
       },
       {
         id: 32,
-        title: "Oppenheimer",
-        poster: "/images/posters/oppenheimer-poster.png",
-        rating: 8.5,
-        year: 2023,
-        genre: ["Biography", "Drama"],
-        trailer: "https://example.com/oppenheimer-trailer.mp4",
+        title: "The Batman",
+        poster: "/batman-2022-poster.png",
+        rating: 7.8,
+        year: 2022,
+        genre: "Action",
+        duration: "176 min",
         description:
-          "The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb.",
+          "When a sadistic serial killer begins murdering key political figures in Gotham, Batman is forced to investigate the city's hidden corruption.",
+        watchStatus: "watching",
         addedDate: "2024-01-10",
-        watched: true,
+        progress: 45,
       },
       {
         id: 33,
-        title: "The Batman",
-        poster: "/batman-2022-poster.png",
-        rating: 8.2,
+        title: "Everything Everywhere All at Once",
+        poster: "/eeaao-poster.png",
+        rating: 7.8,
         year: 2022,
-        genre: ["Action", "Crime"],
-        trailer: "https://example.com/batman-trailer.mp4",
+        genre: "Sci-Fi",
+        duration: "139 min",
         description:
-          "Batman ventures into Gotham City's underworld when a sadistic killer leaves behind a trail of cryptic clues.",
-        addedDate: "2024-01-08",
-        watched: true,
+          "A middle-aged Chinese immigrant is swept up into an insane adventure in which she alone can save existence.",
+        watchStatus: "completed",
+        addedDate: "2024-01-05",
+        completedDate: "2024-01-08",
       },
       {
         id: 34,
-        title: "Everything Everywhere All at Once",
-        poster: "/eeaao-poster.png",
-        rating: 8.1,
-        year: 2022,
-        genre: ["Sci-Fi", "Comedy"],
-        trailer: "https://example.com/eeaao-trailer.mp4",
-        description: "A middle-aged Chinese immigrant is swept up into an insane adventure.",
-        addedDate: "2024-01-05",
-        watched: false,
+        title: "Inception",
+        poster: "/inception-movie-poster.png",
+        rating: 8.8,
+        year: 2010,
+        genre: "Sci-Fi",
+        duration: "148 min",
+        description:
+          "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
+        watchStatus: "not_started",
+        addedDate: "2024-01-12",
       },
       {
         id: 35,
-        title: "John Wick: Chapter 4",
-        poster: "/john-wick-chapter-4-inspired-poster.png",
-        rating: 7.9,
+        title: "Spider-Man: Across the Spider-Verse",
+        poster: "/spider-man-across-spider-verse-inspired-poster.png",
+        rating: 8.7,
         year: 2023,
-        genre: ["Action", "Thriller"],
-        trailer: "https://example.com/johnwick4-trailer.mp4",
-        description: "John Wick uncovers a path to defeating The High Table.",
-        addedDate: "2024-01-03",
-        watched: false,
+        genre: "Animation",
+        duration: "140 min",
+        description:
+          "Miles Morales catapults across the Multiverse, where he encounters a team of Spider-People charged with protecting its very existence.",
+        watchStatus: "watching",
+        addedDate: "2024-01-08",
+        progress: 78,
       },
     ]
 
     return NextResponse.json({
       success: true,
-      data: watchlistMovies,
-      total: watchlistMovies.length,
+      data: movies,
+      total: movies.length,
     })
   } catch (error) {
-    console.error("Error fetching user watchlist:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to fetch user watchlist",
-      },
-      { status: 500 },
-    )
+    console.error("Error in watchlist API:", error)
+    return NextResponse.json({ success: false, error: "Failed to fetch watchlist" }, { status: 500 })
   }
 }

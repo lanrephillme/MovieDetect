@@ -5,54 +5,32 @@ export async function POST(request) {
     const { email, name } = await request.json()
 
     if (!email) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Email is required",
-        },
-        { status: 400 },
-      )
+      return NextResponse.json({ success: false, error: "Email is required" }, { status: 400 })
     }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid email format",
-        },
-        { status: 400 },
-      )
+      return NextResponse.json({ success: false, error: "Please enter a valid email address" }, { status: 400 })
     }
 
-    // In a real app, you would:
-    // 1. Save to database
-    // 2. Send welcome email via SendGrid
-    // 3. Add to mailing list
-
-    console.log(`New subscription: ${email}${name ? ` (${name})` : ""}`)
-
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    // In a real app, you would save to database and send welcome email
+    // For now, we'll simulate a successful subscription
+    const subscriber = {
+      id: Date.now(),
+      email,
+      name: name || "",
+      subscribedDate: new Date().toISOString(),
+      status: "active",
+    }
 
     return NextResponse.json({
       success: true,
       message: "Successfully subscribed to newsletter!",
-      data: {
-        email,
-        name: name || null,
-        subscribedAt: new Date().toISOString(),
-      },
+      data: subscriber,
     })
   } catch (error) {
     console.error("Error subscribing to newsletter:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to subscribe to newsletter",
-      },
-      { status: 500 },
-    )
+    return NextResponse.json({ success: false, error: "Failed to subscribe to newsletter" }, { status: 500 })
   }
 }
