@@ -603,4 +603,5 @@ const MovieDetectHero: React.FC = () => {
   )
 }
 
+export { MovieDetectHero }
 export default MovieDetectHero
