@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 
 export async function POST(request) {
   try {
-    const { email } = await request.json()
+    const { email, name } = await request.json()
 
     if (!email) {
       return NextResponse.json(
@@ -26,19 +26,27 @@ export async function POST(request) {
       )
     }
 
-    // In a real app, you would save to database and send welcome email
-    console.log(`New email subscription: ${email}`)
+    // In a real app, you would:
+    // 1. Save to database
+    // 2. Send welcome email via SendGrid
+    // 3. Add to mailing list
+
+    console.log(`New subscription: ${email}${name ? ` (${name})` : ""}`)
+
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 1000))
 
     return NextResponse.json({
       success: true,
       message: "Successfully subscribed to newsletter!",
       data: {
         email,
+        name: name || null,
         subscribedAt: new Date().toISOString(),
       },
     })
   } catch (error) {
-    console.error("Error subscribing email:", error)
+    console.error("Error subscribing to newsletter:", error)
     return NextResponse.json(
       {
         success: false,

@@ -3,25 +3,27 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Mail, CheckCircle, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Mail, CheckCircle, AlertCircle } from "lucide-react"
 
 export function EmailCapture() {
   const [email, setEmail] = useState("")
+  const [name, setName] = useState("")
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
   const [message, setMessage] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!email || !email.includes("@")) {
+    if (!email) {
       setStatus("error")
-      setMessage("Please enter a valid email address")
+      setMessage("Email is required")
       return
     }
 
     setStatus("loading")
+    setMessage("")
 
     try {
       const response = await fetch("/api/email/subscribe", {
@@ -29,80 +31,91 @@ export function EmailCapture() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, name }),
       })
 
       const data = await response.json()
 
       if (data.success) {
         setStatus("success")
-        setMessage("Thanks for subscribing! Check your email for confirmation.")
+        setMessage(data.message)
         setEmail("")
+        setName("")
       } else {
         setStatus("error")
-        setMessage(data.message || "Something went wrong. Please try again.")
+        setMessage(data.error)
       }
     } catch (error) {
       setStatus("error")
-      setMessage("Network error. Please try again later.")
+      setMessage("Failed to subscribe. Please try again.")
     }
   }
 
   return (
-    <section className="py-20 bg-gradient-to-r from-gray-900 via-black to-gray-900">
+    <section className="py-20 bg-gradient-to-br from-blue-900 via-purple-900 to-gray-900">
       <div className="max-w-4xl mx-auto px-6 text-center">
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 md:p-12 border border-gray-700">
-          <div className="w-16 h-16 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Mail className="w-8 h-8 text-white" />
-          </div>
-
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Stay Updated with{" "}
-            <span className="bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">
-              MovieDetect
-            </span>
-          </h2>
-
-          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            Get notified about new features, movie recommendations, and exclusive content. Join our community of movie
-            enthusiasts!
+        <div className="mb-8">
+          <Mail className="w-16 h-16 text-blue-400 mx-auto mb-6" />
+          <h2 className="text-4xl font-bold text-white mb-4">Stay Updated</h2>
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+            Get the latest movie recommendations, new features, and exclusive content delivered to your inbox.
           </p>
+        </div>
 
-          <form onSubmit={handleSubmit} className="max-w-md mx-auto">
-            <div className="flex flex-col sm:flex-row gap-3 mb-4">
-              <Input
-                type="email"
-                placeholder="Enter your email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-teal-500 focus:ring-teal-500/20"
-                disabled={status === "loading"}
-              />
-              <Button
-                type="submit"
-                disabled={status === "loading"}
-                className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-semibold px-6 whitespace-nowrap"
-              >
-                {status === "loading" ? "Subscribing..." : "Subscribe"}
-              </Button>
-            </div>
+        <form onSubmit={handleSubmit} className="max-w-md mx-auto space-y-4">
+          <Input
+            type="text"
+            placeholder="Your name (optional)"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+            disabled={status === "loading"}
+          />
 
-            {status === "success" && (
-              <div className="flex items-center justify-center text-green-400 text-sm">
-                <CheckCircle className="w-4 h-4 mr-2" />
-                {message}
-              </div>
+          <Input
+            type="email"
+            placeholder="Enter your email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+            disabled={status === "loading"}
+            required
+          />
+
+          <Button
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3"
+            disabled={status === "loading"}
+          >
+            {status === "loading" ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                Subscribing...
+              </>
+            ) : (
+              <>
+                <Mail className="w-4 h-4 mr-2" />
+                Subscribe to Newsletter
+              </>
             )}
+          </Button>
+        </form>
 
-            {status === "error" && (
-              <div className="flex items-center justify-center text-red-400 text-sm">
-                <AlertCircle className="w-4 h-4 mr-2" />
-                {message}
-              </div>
-            )}
-          </form>
+        {message && (
+          <div
+            className={`mt-6 p-4 rounded-lg flex items-center justify-center space-x-2 ${
+              status === "success"
+                ? "bg-green-900/20 border border-green-600 text-green-400"
+                : "bg-red-900/20 border border-red-600 text-red-400"
+            }`}
+          >
+            {status === "success" ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+            <span>{message}</span>
+          </div>
+        )}
 
-          <p className="text-gray-400 text-sm mt-4">We respect your privacy. Unsubscribe at any time.</p>
+        <div className="mt-8 text-sm text-gray-400">
+          <p>We respect your privacy. Unsubscribe at any time.</p>
         </div>
       </div>
     </section>

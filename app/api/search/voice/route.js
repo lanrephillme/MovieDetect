@@ -15,33 +15,48 @@ export async function POST(request) {
       )
     }
 
-    // Mock voice search results
-    const mockResults = [
+    // Mock voice search processing
+    // In a real app, you would use speech-to-text API
+    const mockTranscription = "action movies with superheroes"
+
+    const searchResults = [
       {
-        id: 1,
-        title: "Her",
-        poster: "/her-ai-romance-movie-poster.png",
-        rating: 8.0,
-        year: 2013,
-        genre: ["Romance", "Sci-Fi"],
-        description: "A sensitive writer develops an unlikely relationship with an operating system.",
-        confidence: 0.95,
-        transcription: "Find movies about AI and love",
+        id: 201,
+        title: "Avengers: Endgame",
+        poster: "/guardians-galaxy-vol-3-poster.png",
+        rating: 8.4,
+        year: 2019,
+        genre: ["Action", "Adventure"],
+        description: "The Avengers assemble once more to reverse Thanos' actions and restore balance to the universe.",
+        voiceMatch: 94,
+        transcription: mockTranscription,
+      },
+      {
+        id: 202,
+        title: "Spider-Man: No Way Home",
+        poster: "/spider-man-across-spider-verse-inspired-poster.png",
+        rating: 8.2,
+        year: 2021,
+        genre: ["Action", "Adventure"],
+        description:
+          "Spider-Man's identity is revealed, bringing his superhero responsibilities into conflict with his normal life.",
+        voiceMatch: 89,
+        transcription: mockTranscription,
       },
     ]
 
     return NextResponse.json({
       success: true,
-      data: mockResults,
-      total: mockResults.length,
-      transcription: "Find movies about AI and love",
+      data: searchResults,
+      transcription: mockTranscription,
+      total: searchResults.length,
     })
   } catch (error) {
     console.error("Error in voice search:", error)
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to perform voice search",
+        error: "Failed to process voice search",
       },
       { status: 500 },
     )

@@ -1,111 +1,91 @@
 "use client"
 
-import { Search, Upload, Mic, Video, Sparkles, Zap } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Search, ImageIcon, Mic, Video, Brain, Zap } from "lucide-react"
+
+const features = [
+  {
+    icon: Search,
+    title: "Text Search",
+    description: "Search for movies using natural language descriptions, plot details, or any text-based queries.",
+    color: "text-blue-400",
+    bgColor: "bg-blue-500/10",
+  },
+  {
+    icon: ImageIcon,
+    title: "Image Recognition",
+    description: "Upload movie posters, screenshots, or any image to find similar movies instantly.",
+    color: "text-green-400",
+    bgColor: "bg-green-500/10",
+  },
+  {
+    icon: Mic,
+    title: "Voice Search",
+    description: "Speak your movie preferences and let our AI understand what you're looking for.",
+    color: "text-purple-400",
+    bgColor: "bg-purple-500/10",
+  },
+  {
+    icon: Video,
+    title: "Video Analysis",
+    description: "Upload video clips or trailers to find movies with similar scenes, style, or content.",
+    color: "text-red-400",
+    bgColor: "bg-red-500/10",
+  },
+  {
+    icon: Brain,
+    title: "AI Recommendations",
+    description: "Get personalized movie suggestions powered by advanced machine learning algorithms.",
+    color: "text-teal-400",
+    bgColor: "bg-teal-500/10",
+  },
+  {
+    icon: Zap,
+    title: "Instant Results",
+    description: "Lightning-fast search results with detailed movie information and streaming availability.",
+    color: "text-yellow-400",
+    bgColor: "bg-yellow-500/10",
+  },
+]
 
 export function HowItWorks() {
-  const steps = [
-    {
-      icon: Search,
-      title: "Describe Your Memory",
-      description: "Tell us what you remember about the movie - a scene, quote, or character detail.",
-      color: "from-blue-500 to-cyan-500",
-    },
-    {
-      icon: Upload,
-      title: "Upload Media",
-      description: "Share screenshots, audio clips, or video snippets from the movie you're looking for.",
-      color: "from-purple-500 to-pink-500",
-    },
-    {
-      icon: Mic,
-      title: "Hum the Soundtrack",
-      description: "Can't remember the name but know the tune? Hum or sing the soundtrack for instant recognition.",
-      color: "from-green-500 to-teal-500",
-    },
-    {
-      icon: Sparkles,
-      title: "AI Analysis",
-      description: "Our advanced AI processes your input using computer vision, audio recognition, and NLP.",
-      color: "from-orange-500 to-red-500",
-    },
-    {
-      icon: Zap,
-      title: "Instant Results",
-      description: "Get accurate movie matches with confidence scores and detailed information in seconds.",
-      color: "from-indigo-500 to-purple-500",
-    },
-    {
-      icon: Video,
-      title: "Watch & Enjoy",
-      description: "Access trailers, cast info, streaming options, and add movies to your personal watchlist.",
-      color: "from-pink-500 to-rose-500",
-    },
-  ]
-
   return (
-    <section className="py-20 bg-gradient-to-b from-black to-gray-900">
+    <section className="py-20 bg-gray-950">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            How MovieDetect{" "}
-            <span className="bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">Works</span>
-          </h2>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            Our AI-powered platform uses cutting-edge technology to identify movies from any type of input you provide.
+          <h2 className="text-4xl font-bold text-white mb-4">How MovieDetect Works</h2>
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            Discover movies like never before with our revolutionary AI-powered search technology. Find exactly what
+            you're looking for using multiple input methods.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-          {steps.map((step, index) => {
-            const Icon = step.icon
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {features.map((feature, index) => {
+            const Icon = feature.icon
             return (
               <div
-                key={index}
-                className="relative group bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700 hover:border-gray-600 transition-all duration-300 hover:transform hover:scale-105"
+                key={feature.title}
+                className="group relative bg-gray-900 rounded-xl p-8 hover:bg-gray-800 transition-all duration-300 hover:scale-105"
               >
-                <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-500" />
+                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-lg ${feature.bgColor} mb-6`}>
+                  <Icon className={`w-8 h-8 ${feature.color}`} />
+                </div>
 
-                <div className="relative z-10">
-                  <div
-                    className={`w-12 h-12 rounded-lg bg-gradient-to-r ${step.color} flex items-center justify-center mb-4`}
-                  >
-                    <Icon className="w-6 h-6 text-white" />
-                  </div>
+                <h3 className="text-xl font-semibold text-white mb-4">{feature.title}</h3>
+                <p className="text-gray-400 leading-relaxed">{feature.description}</p>
 
-                  <div className="flex items-center mb-3">
-                    <span className="text-2xl font-bold text-teal-400 mr-3">{index + 1}</span>
-                    <h3 className="text-lg font-semibold text-white">{step.title}</h3>
-                  </div>
-
-                  <p className="text-gray-300 leading-relaxed">{step.description}</p>
+                <div className="absolute top-4 right-4 text-gray-700 font-bold text-2xl">
+                  {String(index + 1).padStart(2, "0")}
                 </div>
               </div>
             )
           })}
         </div>
 
-        <div className="text-center">
-          <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl p-8 border border-gray-700 max-w-4xl mx-auto">
-            <h3 className="text-2xl font-bold text-white mb-4">Ready to Find Your Movie?</h3>
-            <p className="text-gray-300 mb-6">
-              Join thousands of movie enthusiasts who've discovered their forgotten favorites with MovieDetect.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-semibold px-8 py-3"
-              >
-                Start Searching Now
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-gray-600 text-gray-300 hover:bg-gray-800 px-8 py-3 bg-transparent"
-              >
-                Learn More
-              </Button>
-            </div>
+        <div className="mt-16 text-center">
+          <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full px-6 py-3">
+            <Brain className="w-5 h-5 text-white" />
+            <span className="text-white font-semibold">Powered by Advanced AI Technology</span>
           </div>
         </div>
       </div>

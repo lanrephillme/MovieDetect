@@ -15,33 +15,51 @@ export async function POST(request) {
       )
     }
 
-    // Mock audio search results
-    const mockResults = [
+    // Mock audio analysis
+    // In a real app, you would use audio fingerprinting or music recognition
+    const detectedGenre = "orchestral soundtrack"
+    const mood = "epic and dramatic"
+
+    const searchResults = [
       {
-        id: 1,
+        id: 401,
         title: "Inception",
         poster: "/inception-movie-poster.png",
         rating: 8.8,
         year: 2010,
         genre: ["Sci-Fi", "Thriller"],
         description: "A thief who steals corporate secrets through dream-sharing technology.",
-        confidence: 0.92,
-        matchType: "Soundtrack similarity",
+        audioMatch: 95,
+        detectedGenre,
+        mood,
+      },
+      {
+        id: 402,
+        title: "Interstellar",
+        poster: "/interstellar-inspired-poster.png",
+        rating: 8.6,
+        year: 2014,
+        genre: ["Sci-Fi", "Drama"],
+        description: "A team of explorers travel through a wormhole in space to ensure humanity's survival.",
+        audioMatch: 88,
+        detectedGenre,
+        mood,
       },
     ]
 
     return NextResponse.json({
       success: true,
-      data: mockResults,
-      total: mockResults.length,
-      analysis: "Detected orchestral soundtrack with dramatic themes",
+      data: searchResults,
+      detectedGenre,
+      mood,
+      total: searchResults.length,
     })
   } catch (error) {
     console.error("Error in audio search:", error)
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to perform audio search",
+        error: "Failed to process audio search",
       },
       { status: 500 },
     )

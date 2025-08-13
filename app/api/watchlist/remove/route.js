@@ -14,8 +14,8 @@ export async function POST(request) {
       )
     }
 
-    // In a real app, you would remove from database
-    // For now, we'll just simulate success
+    // In a real app, you would remove this from a database
+    // For now, we'll simulate a successful removal
     console.log(`Removing movie ${movieId} from watchlist`)
 
     return NextResponse.json({
@@ -27,7 +27,7 @@ export async function POST(request) {
       },
     })
   } catch (error) {
-    console.error("Error removing from watchlist:", error)
+    console.error("Error removing movie from watchlist:", error)
     return NextResponse.json(
       {
         success: false,

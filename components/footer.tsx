@@ -1,73 +1,71 @@
+"use client"
+
+import { Github, Twitter, Linkedin, Mail, Heart } from "lucide-react"
 import Link from "next/link"
-import { Search, Mail, Twitter, Github, Linkedin, Instagram } from "lucide-react"
+
+const footerLinks = {
+  product: [
+    { name: "Features", href: "/features" },
+    { name: "Pricing", href: "/pricing" },
+    { name: "API", href: "/api" },
+    { name: "Documentation", href: "/docs" },
+  ],
+  company: [
+    { name: "About", href: "/about" },
+    { name: "Blog", href: "/blog" },
+    { name: "Careers", href: "/careers" },
+    { name: "Contact", href: "/contact" },
+  ],
+  support: [
+    { name: "Help Center", href: "/help" },
+    { name: "Community", href: "/community" },
+    { name: "Status", href: "/status" },
+    { name: "Feedback", href: "/feedback" },
+  ],
+  legal: [
+    { name: "Privacy Policy", href: "/privacy" },
+    { name: "Terms of Service", href: "/terms" },
+    { name: "Cookie Policy", href: "/cookies" },
+    { name: "DMCA", href: "/dmca" },
+  ],
+}
+
+const socialLinks = [
+  { name: "GitHub", href: "https://github.com", icon: Github },
+  { name: "Twitter", href: "https://twitter.com", icon: Twitter },
+  { name: "LinkedIn", href: "https://linkedin.com", icon: Linkedin },
+  { name: "Email", href: "mailto:hello@moviedetect.com", icon: Mail },
+]
 
 export function Footer() {
-  const currentYear = new Date().getFullYear()
-
-  const footerLinks = {
-    product: [
-      { name: "Features", href: "/features" },
-      { name: "Pricing", href: "/pricing" },
-      { name: "API", href: "/api-docs" },
-      { name: "Changelog", href: "/changelog" },
-    ],
-    company: [
-      { name: "About", href: "/about" },
-      { name: "Blog", href: "/blog" },
-      { name: "Careers", href: "/careers" },
-      { name: "Contact", href: "/contact" },
-    ],
-    support: [
-      { name: "Help Center", href: "/help" },
-      { name: "Community", href: "/community" },
-      { name: "Status", href: "/status" },
-      { name: "Feedback", href: "/feedback" },
-    ],
-    legal: [
-      { name: "Privacy Policy", href: "/privacy" },
-      { name: "Terms of Service", href: "/terms" },
-      { name: "Cookie Policy", href: "/cookies" },
-      { name: "DMCA", href: "/dmca" },
-    ],
-  }
-
-  const socialLinks = [
-    { name: "Twitter", href: "https://twitter.com/moviedetect", icon: Twitter },
-    { name: "GitHub", href: "https://github.com/moviedetect", icon: Github },
-    { name: "LinkedIn", href: "https://linkedin.com/company/moviedetect", icon: Linkedin },
-    { name: "Instagram", href: "https://instagram.com/moviedetect", icon: Instagram },
-  ]
-
   return (
-    <footer className="bg-gray-900 border-t border-gray-800">
-      <div className="max-w-7xl mx-auto px-6 py-12">
+    <footer className="bg-gray-950 border-t border-gray-800">
+      <div className="max-w-7xl mx-auto px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
           {/* Brand Section */}
           <div className="lg:col-span-2">
-            <Link href="/" className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-lg flex items-center justify-center">
-                <Search className="w-5 h-5 text-white" />
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">MD</span>
               </div>
               <span className="text-xl font-bold text-white">MovieDetect</span>
-            </Link>
+            </div>
             <p className="text-gray-400 mb-6 max-w-sm">
-              The most advanced AI-powered movie discovery platform. Find any movie using scenes, images, audio, or
-              video clips.
+              Discover movies like never before with AI-powered search technology. Find your next favorite film using
+              text, images, voice, and more.
             </p>
             <div className="flex space-x-4">
               {socialLinks.map((social) => {
                 const Icon = social.icon
                 return (
-                  <a
+                  <Link
                     key={social.name}
                     href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-lg flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                    className="w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-lg flex items-center justify-center transition-colors"
                     aria-label={social.name}
                   >
-                    <Icon className="w-5 h-5" />
-                  </a>
+                    <Icon className="w-5 h-5 text-gray-400 hover:text-white" />
+                  </Link>
                 )
               })}
             </div>
@@ -127,36 +125,13 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Newsletter Section */}
-        <div className="border-t border-gray-800 mt-12 pt-8">
-          <div className="flex flex-col md:flex-row items-center justify-between">
-            <div className="mb-4 md:mb-0">
-              <h4 className="text-white font-semibold mb-2">Stay in the loop</h4>
-              <p className="text-gray-400">Get the latest updates and movie recommendations.</p>
-            </div>
-            <div className="flex space-x-3">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
-              />
-              <button className="px-6 py-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-semibold rounded-lg transition-all duration-200 flex items-center space-x-2">
-                <Mail className="w-4 h-4" />
-                <span>Subscribe</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
         {/* Bottom Section */}
-        <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row items-center justify-between">
-          <p className="text-gray-400 text-sm">© {currentYear} MovieDetect. All rights reserved.</p>
-          <div className="flex items-center space-x-6 mt-4 md:mt-0">
-            <span className="text-gray-400 text-sm">Made with ❤️ for movie lovers</span>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-gray-400 text-sm">All systems operational</span>
-            </div>
+        <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <p className="text-gray-400 text-sm">© 2024 MovieDetect. All rights reserved.</p>
+          <div className="flex items-center space-x-1 text-gray-400 text-sm mt-4 md:mt-0">
+            <span>Made with</span>
+            <Heart className="w-4 h-4 text-red-500 fill-current" />
+            <span>for movie lovers everywhere</span>
           </div>
         </div>
       </div>

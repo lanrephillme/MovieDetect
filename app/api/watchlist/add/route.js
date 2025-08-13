@@ -14,8 +14,8 @@ export async function POST(request) {
       )
     }
 
-    // In a real app, you would save to database
-    // For now, we'll just simulate success
+    // In a real app, you would save this to a database
+    // For now, we'll simulate a successful addition
     console.log(`Adding movie ${movieId} to watchlist:`, movie)
 
     return NextResponse.json({
@@ -27,7 +27,7 @@ export async function POST(request) {
       },
     })
   } catch (error) {
-    console.error("Error adding to watchlist:", error)
+    console.error("Error adding movie to watchlist:", error)
     return NextResponse.json(
       {
         success: false,
