@@ -52,22 +52,31 @@ export function MovieCarousels() {
 
   const fetchCarouselData = async (endpoint: string, carouselIndex: number) => {
     try {
+      console.log(`Fetching data from: ${endpoint}`)
       const response = await fetch(endpoint)
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-      const data = await response.json()
 
-      if (data.success) {
+      const contentType = response.headers.get("content-type")
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Response is not JSON")
+      }
+
+      const data = await response.json()
+      console.log(`Data received from ${endpoint}:`, data)
+
+      if (data.success && data.data) {
         setCarousels((prev) =>
           prev.map((carousel, index) =>
-            index === carouselIndex ? { ...carousel, movies: data.data || [], loading: false, error: null } : carousel,
+            index === carouselIndex ? { ...carousel, movies: data.data, loading: false, error: null } : carousel,
           ),
         )
 
         // Update watchlist items if this is the watchlist carousel
         if (endpoint === "/api/watchlist/user") {
-          setWatchlistItems(new Set((data.data || []).map((movie: Movie) => movie.id)))
+          setWatchlistItems(new Set(data.data.map((movie: Movie) => movie.id)))
         }
       } else {
         throw new Error(data.error || "Failed to fetch data")
@@ -266,24 +275,6 @@ export function MovieCarousels() {
           <div key={carousel.title} className="mb-12">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-white">{carousel.title}</h2>
-              <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="bg-black/50 hover:bg-black/70 text-white h-10 w-10"
-                  onClick={() => scrollCarousel(carouselIndex, "left")}
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="bg-black/50 hover:bg-black/70 text-white h-10 w-10"
-                  onClick={() => scrollCarousel(carouselIndex, "right")}
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </Button>
-              </div>
             </div>
 
             <div className="relative group">
@@ -317,13 +308,12 @@ export function MovieCarousels() {
                 </div>
               ) : carousel.error ? (
                 <div className="text-red-400 text-center py-8">
-                  <p>
-                    Error loading {carousel.title.toLowerCase()}: {carousel.error}
-                  </p>
+                  <p className="mb-2">Error loading {carousel.title.toLowerCase()}</p>
+                  <p className="text-sm text-gray-400 mb-4">{carousel.error}</p>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="mt-4 border-red-400 text-red-400 hover:bg-red-400/10 bg-transparent"
+                    className="border-red-400 text-red-400 hover:bg-red-400/10 bg-transparent"
                     onClick={() => fetchCarouselData(carousel.endpoint, carouselIndex)}
                   >
                     Retry
