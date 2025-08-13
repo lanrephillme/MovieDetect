@@ -1,10 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent } from "@/components/ui/card"
+import { ChevronLeft, ChevronRight, Play, Pause, Volume2, VolumeX, Plus, Check, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ChevronLeft, ChevronRight, Play, Pause, Volume2, VolumeX, Plus, Check, Star } from "lucide-react"
 
 interface Movie {
   id: number
@@ -12,78 +11,83 @@ interface Movie {
   poster: string
   rating: number
   year: number
-  genre: string
+  genre: string[]
   trailer?: string
-  description?: string
-  confidence?: number
+  description: string
+  aiConfidence?: number
   matchReason?: string
-  inWatchlist?: boolean
+  addedDate?: string
   watched?: boolean
 }
 
 interface CarouselData {
   title: string
+  endpoint: string
   movies: Movie[]
+  loading: boolean
+  error: string | null
 }
 
 export function MovieCarousels() {
-  const [carousels, setCarousels] = useState<CarouselData[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [carousels, setCarousels] = useState<CarouselData[]>([
+    { title: "Trending Movies", endpoint: "/api/movies/trending", movies: [], loading: true, error: null },
+    { title: "Popular This Week", endpoint: "/api/movies/popular", movies: [], loading: true, error: null },
+    { title: "New Releases", endpoint: "/api/movies/new-releases", movies: [], loading: true, error: null },
+    { title: "AI (MD) Recommended", endpoint: "/api/recommendations", movies: [], loading: true, error: null },
+    { title: "Top Rated", endpoint: "/api/movies/top-rated", movies: [], loading: true, error: null },
+    { title: "Your Watchlist", endpoint: "/api/watchlist/user", movies: [], loading: true, error: null },
+  ])
+
   const [hoveredMovie, setHoveredMovie] = useState<number | null>(null)
   const [playingTrailer, setPlayingTrailer] = useState<number | null>(null)
   const [isMuted, setIsMuted] = useState(true)
+  const [watchlistItems, setWatchlistItems] = useState<Set<number>>(new Set())
 
   useEffect(() => {
-    const fetchCarousels = async () => {
-      try {
-        setLoading(true)
-        const endpoints = [
-          { url: "/api/movies/trending", title: "Trending Movies" },
-          { url: "/api/movies/popular", title: "Popular This Week" },
-          { url: "/api/movies/new-releases", title: "New Releases" },
-          { url: "/api/recommendations", title: "AI (MD) Recommended For You" },
-          { url: "/api/movies/top-rated", title: "Top Rated" },
-          { url: "/api/watchlist/user", title: "Your Watchlist" },
-        ]
-
-        const carouselPromises = endpoints.map(async (endpoint) => {
-          try {
-            const response = await fetch(endpoint.url)
-            if (!response.ok) {
-              throw new Error(`Failed to fetch ${endpoint.title}`)
-            }
-            const data = await response.json()
-            return {
-              title: endpoint.title,
-              movies: data.movies || [],
-            }
-          } catch (err) {
-            console.error(`Error fetching ${endpoint.title}:`, err)
-            return {
-              title: endpoint.title,
-              movies: [],
-            }
-          }
-        })
-
-        const results = await Promise.all(carouselPromises)
-        setCarousels(results)
-      } catch (err) {
-        setError("Failed to load movie carousels")
-        console.error("Error fetching carousels:", err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchCarousels()
+    // Fetch data for all carousels
+    carousels.forEach((carousel, index) => {
+      fetchCarouselData(carousel.endpoint, index)
+    })
   }, [])
 
-  const scrollCarousel = (direction: "left" | "right", carouselIndex: number) => {
+  const fetchCarouselData = async (endpoint: string, carouselIndex: number) => {
+    try {
+      const response = await fetch(endpoint)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      const data = await response.json()
+
+      if (data.success) {
+        setCarousels((prev) =>
+          prev.map((carousel, index) =>
+            index === carouselIndex ? { ...carousel, movies: data.data || [], loading: false, error: null } : carousel,
+          ),
+        )
+
+        // Update watchlist items if this is the watchlist carousel
+        if (endpoint === "/api/watchlist/user") {
+          setWatchlistItems(new Set((data.data || []).map((movie: Movie) => movie.id)))
+        }
+      } else {
+        throw new Error(data.error || "Failed to fetch data")
+      }
+    } catch (error) {
+      console.error(`Error fetching ${endpoint}:`, error)
+      setCarousels((prev) =>
+        prev.map((carousel, index) =>
+          index === carouselIndex
+            ? { ...carousel, loading: false, error: error instanceof Error ? error.message : "Unknown error" }
+            : carousel,
+        ),
+      )
+    }
+  }
+
+  const scrollCarousel = (carouselIndex: number, direction: "left" | "right") => {
     const carousel = document.getElementById(`carousel-${carouselIndex}`)
     if (carousel) {
-      const scrollAmount = 320
+      const scrollAmount = 320 // Width of movie card + gap
       carousel.scrollBy({
         left: direction === "left" ? -scrollAmount : scrollAmount,
         behavior: "smooth",
@@ -105,194 +109,247 @@ export function MovieCarousels() {
     }
   }
 
-  const togglePlayPause = (movieId: number) => {
-    if (playingTrailer === movieId) {
-      setPlayingTrailer(null)
-    } else {
-      setPlayingTrailer(movieId)
-    }
-  }
-
   const toggleMute = () => {
     setIsMuted(!isMuted)
   }
 
-  const toggleWatchlist = async (movieId: number) => {
-    // TODO: Implement actual watchlist API call
-    console.log("Toggle watchlist for movie:", movieId)
+  const togglePlayPause = () => {
+    if (playingTrailer) {
+      setPlayingTrailer(null)
+    } else if (hoveredMovie) {
+      setPlayingTrailer(hoveredMovie)
+    }
   }
 
-  if (loading) {
+  const toggleWatchlist = async (movie: Movie) => {
+    try {
+      const isInWatchlist = watchlistItems.has(movie.id)
+      const endpoint = isInWatchlist ? "/api/watchlist/remove" : "/api/watchlist/add"
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ movieId: movie.id, movie }),
+      })
+
+      if (response.ok) {
+        setWatchlistItems((prev) => {
+          const newSet = new Set(prev)
+          if (isInWatchlist) {
+            newSet.delete(movie.id)
+          } else {
+            newSet.add(movie.id)
+          }
+          return newSet
+        })
+      }
+    } catch (error) {
+      console.error("Error updating watchlist:", error)
+    }
+  }
+
+  const MovieCard = ({ movie, carouselTitle }: { movie: Movie; carouselTitle: string }) => {
+    const isHovered = hoveredMovie === movie.id
+    const isPlaying = playingTrailer === movie.id
+    const isInWatchlist = watchlistItems.has(movie.id)
+
     return (
-      <section className="py-16 bg-black">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="space-y-12">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="space-y-4">
-                <div className="h-8 bg-gray-800 rounded w-64 animate-pulse"></div>
-                <div className="flex space-x-4 overflow-hidden">
-                  {[...Array(6)].map((_, j) => (
-                    <div key={j} className="flex-shrink-0 w-48 h-72 bg-gray-800 rounded-lg animate-pulse"></div>
-                  ))}
+      <div
+        className="relative flex-shrink-0 w-72 group cursor-pointer"
+        onMouseEnter={() => handleMovieHover(movie.id)}
+        onMouseLeave={() => handleMovieHover(null)}
+      >
+        <div
+          className={`relative overflow-hidden rounded-lg transition-all duration-300 ${
+            isHovered ? "scale-105 shadow-2xl z-10" : "scale-100"
+          }`}
+        >
+          {/* Movie Poster/Trailer */}
+          <div className="relative aspect-[2/3] bg-gray-800">
+            {isPlaying ? (
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-900/50 to-purple-900/50 flex items-center justify-center">
+                <div className="text-white text-center">
+                  <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-4 mx-auto">
+                    <Play className="w-8 h-8 ml-1" />
+                  </div>
+                  <p className="text-sm opacity-75">Trailer Preview</p>
                 </div>
               </div>
-            ))}
+            ) : (
+              <img
+                src={movie.poster || "/placeholder.svg"}
+                alt={movie.title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.src = `/placeholder.svg?height=432&width=288&query=${encodeURIComponent(movie.title + " movie poster")}`
+                }}
+              />
+            )}
+
+            {/* Hover Overlay */}
+            {isHovered && (
+              <div className="absolute inset-0 bg-black/50 flex flex-col justify-between p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                {/* Top Controls */}
+                <div className="flex justify-between items-start">
+                  {movie.aiConfidence && (
+                    <Badge variant="secondary" className="bg-teal-600 text-white text-xs">
+                      {movie.aiConfidence}% Match
+                    </Badge>
+                  )}
+                  <div className="flex space-x-2">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="bg-white/20 hover:bg-white/30 text-white border-0 h-8 w-8 p-0"
+                      onClick={toggleMute}
+                    >
+                      {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="bg-white/20 hover:bg-white/30 text-white border-0 h-8 w-8 p-0"
+                      onClick={togglePlayPause}
+                    >
+                      {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Bottom Info */}
+                <div className="space-y-3">
+                  <h3 className="font-bold text-white text-lg line-clamp-2">{movie.title}</h3>
+                  <div className="flex items-center space-x-3">
+                    <span className="text-sm text-gray-300 font-medium">{movie.year}</span>
+                    <div className="flex items-center space-x-1">
+                      <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                      <span className="text-xs text-gray-400 font-medium">{movie.rating}</span>
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className={`border-gray-500 text-white hover:border-white hover:text-white h-8 px-3 bg-black/70 backdrop-blur-sm transition-all duration-200 text-xs font-medium ${
+                        isInWatchlist ? "bg-green-600 border-green-600" : ""
+                      }`}
+                      onClick={() => toggleWatchlist(movie)}
+                    >
+                      {isInWatchlist ? <Check className="w-3 h-3 mr-1" /> : <Plus className="w-3 h-3 mr-1" />}
+                      {isInWatchlist ? "Added" : "My List"}
+                    </Button>
+                  </div>
+                  {movie.matchReason && <p className="text-teal-400 text-xs italic">{movie.matchReason}</p>}
+                </div>
+              </div>
+            )}
+
+            {/* Rating Badge */}
+            <div className="absolute top-2 right-2">
+              <Badge variant="secondary" className="bg-black/60 text-white text-xs">
+                ⭐ {movie.rating}
+              </Badge>
+            </div>
           </div>
         </div>
-      </section>
-    )
-  }
-
-  if (error) {
-    return (
-      <section className="py-16 bg-black">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <div className="text-red-500 text-xl">{error}</div>
-          <Button
-            onClick={() => window.location.reload()}
-            className="mt-4 bg-gradient-to-r from-teal-500 to-emerald-500"
-          >
-            Retry
-          </Button>
-        </div>
-      </section>
+      </div>
     )
   }
 
   return (
-    <section className="py-16 bg-black">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="space-y-12">
-          {carousels.map((carousel, carouselIndex) => (
-            <div key={carouselIndex} className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                  {carousel.title}
-                  {carousel.title.includes("AI") && (
-                    <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">AI Powered</Badge>
-                  )}
-                </h2>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => scrollCarousel("left", carouselIndex)}
-                    className="border-gray-600 text-gray-400 hover:text-white hover:border-white"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => scrollCarousel("right", carouselIndex)}
-                    className="border-gray-600 text-gray-400 hover:text-white hover:border-white"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <div
-                id={`carousel-${carouselIndex}`}
-                className="flex space-x-4 overflow-x-auto scrollbar-hide pb-4"
-                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-              >
-                {carousel.movies.map((movie) => (
-                  <Card
-                    key={movie.id}
-                    className="flex-shrink-0 w-48 bg-gray-900 border-gray-800 hover:border-gray-600 transition-all duration-300 cursor-pointer group relative overflow-hidden"
-                    onMouseEnter={() => handleMovieHover(movie.id)}
-                    onMouseLeave={() => handleMovieHover(null)}
-                  >
-                    <CardContent className="p-0 relative">
-                      <div className="relative">
-                        <img
-                          src={movie.poster || "/placeholder.svg"}
-                          alt={movie.title}
-                          className="w-full h-72 object-cover rounded-t-lg group-hover:scale-105 transition-transform duration-300"
-                        />
-
-                        {/* Trailer overlay */}
-                        {hoveredMovie === movie.id && (
-                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                            <div className="flex items-center gap-2">
-                              <Button
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  togglePlayPause(movie.id)
-                                }}
-                                className="bg-white/20 hover:bg-white/30 text-white border-0"
-                              >
-                                {playingTrailer === movie.id ? (
-                                  <Pause className="h-4 w-4" />
-                                ) : (
-                                  <Play className="h-4 w-4" />
-                                )}
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  toggleMute()
-                                }}
-                                className="bg-white/20 hover:bg-white/30 text-white border-0"
-                              >
-                                {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Watchlist button */}
-                        <Button
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            toggleWatchlist(movie.id)
-                          }}
-                          className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white border-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          {movie.inWatchlist ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                        </Button>
-
-                        {/* AI confidence badge */}
-                        {movie.confidence && (
-                          <Badge className="absolute top-2 left-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                            {movie.confidence}% Match
-                          </Badge>
-                        )}
-
-                        {/* Watched indicator */}
-                        {movie.watched && (
-                          <div className="absolute bottom-2 left-2 w-full bg-teal-500 h-1 rounded-full"></div>
-                        )}
-                      </div>
-
-                      <div className="p-3 space-y-2">
-                        <h3 className="text-white font-semibold text-sm line-clamp-2 leading-tight">{movie.title}</h3>
-                        <div className="flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-1 text-gray-400">
-                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                            <span>{movie.rating}</span>
-                          </div>
-                          <span className="text-gray-400">{movie.year}</span>
-                        </div>
-                        <div className="text-xs text-gray-500">{movie.genre}</div>
-
-                        {/* AI match reason */}
-                        {movie.matchReason && (
-                          <div className="text-xs text-purple-400 italic">"{movie.matchReason}"</div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+    <div className="py-16 bg-black">
+      <div className="max-w-7xl mx-auto px-6">
+        {carousels.map((carousel, carouselIndex) => (
+          <div key={carousel.title} className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white">{carousel.title}</h2>
+              <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="bg-black/50 hover:bg-black/70 text-white h-10 w-10"
+                  onClick={() => scrollCarousel(carouselIndex, "left")}
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="bg-black/50 hover:bg-black/70 text-white h-10 w-10"
+                  onClick={() => scrollCarousel(carouselIndex, "right")}
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </Button>
               </div>
             </div>
-          ))}
-        </div>
+
+            <div className="relative group">
+              {/* Left Arrow */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black/90 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 w-12 h-12 rounded-full"
+                onClick={() => scrollCarousel(carouselIndex, "left")}
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </Button>
+
+              {/* Right Arrow */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black/90 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 w-12 h-12 rounded-full"
+                onClick={() => scrollCarousel(carouselIndex, "right")}
+              >
+                <ChevronRight className="w-6 h-6" />
+              </Button>
+
+              {carousel.loading ? (
+                <div className="flex space-x-4">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex-shrink-0 w-72">
+                      <div className="aspect-[2/3] bg-gray-800 rounded-lg animate-pulse mb-3" />
+                    </div>
+                  ))}
+                </div>
+              ) : carousel.error ? (
+                <div className="text-red-400 text-center py-8">
+                  <p>
+                    Error loading {carousel.title.toLowerCase()}: {carousel.error}
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-4 border-red-400 text-red-400 hover:bg-red-400/10 bg-transparent"
+                    onClick={() => fetchCarouselData(carousel.endpoint, carouselIndex)}
+                  >
+                    Retry
+                  </Button>
+                </div>
+              ) : (
+                <div
+                  id={`carousel-${carouselIndex}`}
+                  className="flex space-x-4 overflow-x-auto scrollbar-hide pb-4"
+                  style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                >
+                  {carousel.movies.length > 0 ? (
+                    carousel.movies.map((movie) => (
+                      <MovieCard key={movie.id} movie={movie} carouselTitle={carousel.title} />
+                    ))
+                  ) : (
+                    <div className="flex-shrink-0 w-72 h-96 bg-gray-800 rounded-lg flex items-center justify-center">
+                      <p className="text-gray-400 text-center">No movies available</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
-    </section>
+    </div>
   )
 }

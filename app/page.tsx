@@ -7,7 +7,7 @@ import { ScrollToTop } from "@/components/scroll-to-top"
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-black">
+    <main className="min-h-screen">
       <MovieDetectHero />
       <MovieCarousels />
       <HowItWorks />
