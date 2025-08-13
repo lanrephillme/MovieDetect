@@ -50,6 +50,17 @@ export function MovieCarousels() {
       const categoryPromises = categoryConfig.map(async (config) => {
         try {
           const response = await fetch(config.endpoint)
+
+          // Check if response is ok and content-type is JSON
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
+          }
+
+          const contentType = response.headers.get("content-type")
+          if (!contentType || !contentType.includes("application/json")) {
+            throw new Error("Response is not JSON")
+          }
+
           const data = await response.json()
           return {
             title: config.title,
@@ -58,6 +69,7 @@ export function MovieCarousels() {
           }
         } catch (error) {
           console.error(`Error fetching ${config.title}:`, error)
+          // Return empty movies array for failed requests
           return {
             title: config.title,
             endpoint: config.endpoint,
@@ -70,6 +82,14 @@ export function MovieCarousels() {
       setCategories(results)
     } catch (error) {
       console.error("Error fetching categories:", error)
+      // Set empty categories on complete failure
+      setCategories(
+        categoryConfig.map((config) => ({
+          title: config.title,
+          endpoint: config.endpoint,
+          movies: [],
+        })),
+      )
     } finally {
       setLoading(false)
     }
@@ -172,125 +192,131 @@ export function MovieCarousels() {
                 className="flex space-x-4 overflow-x-auto scrollbar-hide scroll-smooth"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
               >
-                {category.movies.map((movie) => (
-                  <div
-                    key={movie.id}
-                    className="flex-shrink-0 w-64 group/movie cursor-pointer"
-                    onMouseEnter={() => {
-                      setHoveredMovie(movie.id)
-                      // Auto-play trailer on hover after 1 second
-                      setTimeout(() => {
-                        if (hoveredMovie === movie.id) {
-                          setPlayingMovies((prev) => new Set([...prev, movie.id]))
-                          setMutedMovies((prev) => new Set([...prev, movie.id]))
-                        }
-                      }, 1000)
-                    }}
-                    onMouseLeave={() => {
-                      setHoveredMovie(null)
-                      // Stop playing when mouse leaves
-                      setPlayingMovies((prev) => {
-                        const newSet = new Set(prev)
-                        newSet.delete(movie.id)
-                        return newSet
-                      })
-                    }}
-                    onClick={() => handleMovieClick(movie)}
-                  >
-                    <div className="relative overflow-hidden rounded-lg transition-all duration-300 group-hover/movie:scale-105 group-hover/movie:z-20">
-                      {/* Video/Image Display */}
-                      {playingMovies.has(movie.id) && movie.trailer ? (
-                        <video
-                          className="w-full h-96 object-cover"
-                          autoPlay
-                          loop
-                          muted={mutedMovies.has(movie.id)}
-                          playsInline
-                        >
-                          <source src={movie.trailer} type="video/mp4" />
+                {category.movies.length > 0 ? (
+                  category.movies.map((movie) => (
+                    <div
+                      key={movie.id}
+                      className="flex-shrink-0 w-64 group/movie cursor-pointer"
+                      onMouseEnter={() => {
+                        setHoveredMovie(movie.id)
+                        // Auto-play trailer on hover after 1 second
+                        setTimeout(() => {
+                          if (hoveredMovie === movie.id) {
+                            setPlayingMovies((prev) => new Set([...prev, movie.id]))
+                            setMutedMovies((prev) => new Set([...prev, movie.id]))
+                          }
+                        }, 1000)
+                      }}
+                      onMouseLeave={() => {
+                        setHoveredMovie(null)
+                        // Stop playing when mouse leaves
+                        setPlayingMovies((prev) => {
+                          const newSet = new Set(prev)
+                          newSet.delete(movie.id)
+                          return newSet
+                        })
+                      }}
+                      onClick={() => handleMovieClick(movie)}
+                    >
+                      <div className="relative overflow-hidden rounded-lg transition-all duration-300 group-hover/movie:scale-105 group-hover/movie:z-20">
+                        {/* Video/Image Display */}
+                        {playingMovies.has(movie.id) && movie.trailer ? (
+                          <video
+                            className="w-full h-96 object-cover"
+                            autoPlay
+                            loop
+                            muted={mutedMovies.has(movie.id)}
+                            playsInline
+                          >
+                            <source src={movie.trailer} type="video/mp4" />
+                            <img
+                              src={movie.poster || "/placeholder.svg"}
+                              alt={movie.title}
+                              className="w-full h-96 object-cover"
+                            />
+                          </video>
+                        ) : (
                           <img
                             src={movie.poster || "/placeholder.svg"}
                             alt={movie.title}
                             className="w-full h-96 object-cover"
                           />
-                        </video>
-                      ) : (
-                        <img
-                          src={movie.poster || "/placeholder.svg"}
-                          alt={movie.title}
-                          className="w-full h-96 object-cover"
-                        />
-                      )}
+                        )}
 
-                      <div className="absolute top-2 left-2 w-5 h-5 bg-teal-600 rounded-sm flex items-center justify-center">
-                        <span className="text-white text-[10px] font-bold">MD</span>
-                      </div>
+                        <div className="absolute top-2 left-2 w-5 h-5 bg-teal-600 rounded-sm flex items-center justify-center">
+                          <span className="text-white text-[10px] font-bold">MD</span>
+                        </div>
 
-                      {hoveredMovie === movie.id && (
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent flex flex-col justify-end p-4 transition-opacity duration-300">
-                          {/* Trailer Controls */}
-                          {playingMovies.has(movie.id) && (
-                            <div className="absolute top-4 right-4 flex space-x-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="border-gray-500 text-white hover:border-teal-500 hover:text-teal-400 h-8 px-2 bg-black/70 backdrop-blur-sm"
-                                onClick={(e) => toggleMute(movie.id, e)}
-                              >
-                                {mutedMovies.has(movie.id) ? (
-                                  <VolumeX className="w-3 h-3" />
-                                ) : (
-                                  <Volume2 className="w-3 h-3" />
-                                )}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="border-gray-500 text-white hover:border-red-500 hover:text-red-400 h-8 px-2 bg-black/70 backdrop-blur-sm"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  togglePlay(movie.id)
-                                }}
-                              >
-                                <Pause className="w-3 h-3" />
-                              </Button>
+                        {hoveredMovie === movie.id && (
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent flex flex-col justify-end p-4 transition-opacity duration-300">
+                            {/* Trailer Controls */}
+                            {playingMovies.has(movie.id) && (
+                              <div className="absolute top-4 right-4 flex space-x-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-gray-500 text-white hover:border-teal-500 hover:text-teal-400 h-8 px-2 bg-black/70 backdrop-blur-sm"
+                                  onClick={(e) => toggleMute(movie.id, e)}
+                                >
+                                  {mutedMovies.has(movie.id) ? (
+                                    <VolumeX className="w-3 h-3" />
+                                  ) : (
+                                    <Volume2 className="w-3 h-3" />
+                                  )}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-gray-500 text-white hover:border-red-500 hover:text-red-400 h-8 px-2 bg-black/70 backdrop-blur-sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    togglePlay(movie.id)
+                                  }}
+                                >
+                                  <Pause className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            )}
+
+                            <div className="absolute top-8 left-2 text-xs text-white/80 bg-teal-600 px-2 py-1 rounded">
+                              {playingMovies.has(movie.id) ? "PLAYING" : "PREVIEW"}
                             </div>
-                          )}
 
-                          <div className="absolute top-8 left-2 text-xs text-white/80 bg-teal-600 px-2 py-1 rounded">
-                            {playingMovies.has(movie.id) ? "PLAYING" : "PREVIEW"}
-                          </div>
-
-                          <div className="relative z-10 space-y-3">
-                            <h3 className="font-bold text-white text-lg">{movie.title}</h3>
-                            <div className="flex items-center space-x-3">
-                              <span className="text-sm text-gray-300 font-medium">{movie.year}</span>
-                              <div className="flex items-center space-x-1">
-                                <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                                <span className="text-xs text-gray-400 font-medium">{movie.rating}</span>
+                            <div className="relative z-10 space-y-3">
+                              <h3 className="font-bold text-white text-lg">{movie.title}</h3>
+                              <div className="flex items-center space-x-3">
+                                <span className="text-sm text-gray-300 font-medium">{movie.year}</span>
+                                <div className="flex items-center space-x-1">
+                                  <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                                  <span className="text-xs text-gray-400 font-medium">{movie.rating}</span>
+                                </div>
+                              </div>
+                              <div className="flex space-x-2 pt-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-gray-500 text-white hover:border-white hover:text-white hover:shadow-lg hover:shadow-white/20 h-8 px-3 bg-black/70 backdrop-blur-sm transition-all duration-200 text-xs font-medium"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    // TODO: Add to watchlist API call
+                                    console.log("Adding to watchlist:", movie.title)
+                                  }}
+                                >
+                                  <Plus className="w-3 h-3 mr-1" />
+                                  My List
+                                </Button>
                               </div>
                             </div>
-                            <div className="flex space-x-2 pt-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="border-gray-500 text-white hover:border-white hover:text-white hover:shadow-lg hover:shadow-white/20 h-8 px-3 bg-black/70 backdrop-blur-sm transition-all duration-200 text-xs font-medium"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  // TODO: Add to watchlist API call
-                                  console.log("Adding to watchlist:", movie.title)
-                                }}
-                              >
-                                <Plus className="w-3 h-3 mr-1" />
-                                My List
-                              </Button>
-                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="flex-shrink-0 w-64 h-96 bg-gray-800 rounded-lg flex items-center justify-center">
+                    <p className="text-gray-400 text-center">{loading ? "Loading..." : "No movies available"}</p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>
