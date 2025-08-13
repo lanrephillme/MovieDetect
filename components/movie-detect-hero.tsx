@@ -11,9 +11,9 @@ import { SearchModal } from "@/components/search-modal"
 const MovieDetectHero: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [activeSearchType, setActiveSearchType] = useState<"scene" | "actor" | "soundtrack" | "screenshot" | "video">(
-    "scene",
-  )
+  const [activeSearchType, setActiveSearchType] = useState<
+    "scene" | "actor" | "voice" | "soundtrack" | "screenshot" | "video"
+  >("scene")
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
   const [isDragOver, setIsDragOver] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
@@ -40,6 +40,13 @@ const MovieDetectHero: React.FC = () => {
       description: "Search by cast members with autocomplete",
     },
     {
+      id: "voice" as const,
+      label: "Voice Search",
+      icon: Mic,
+      placeholder: "Click to speak your search...",
+      description: "Speak naturally about the movie you're looking for",
+    },
+    {
       id: "soundtrack" as const,
       label: "Soundtrack",
       icon: Mic,
@@ -63,7 +70,9 @@ const MovieDetectHero: React.FC = () => {
   ]
 
   const handleSearch = async () => {
-    if (activeSearchType === "soundtrack") {
+    if (activeSearchType === "voice") {
+      handleVoiceSearch()
+    } else if (activeSearchType === "soundtrack") {
       handleSoundtrackSearch()
     } else if (activeSearchType === "screenshot") {
       handleScreenshotSearch()
@@ -104,6 +113,30 @@ const MovieDetectHero: React.FC = () => {
         console.error("Search error:", error)
         setIsSearchModalOpen(true) // Still open modal for demo
       }
+    }
+  }
+
+  const handleVoiceSearch = () => {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices
+        .getUserMedia({ audio: true })
+        .then(async (stream) => {
+          setIsRecording(true)
+          // TODO: Implement voice recording and send to /api/search/voice
+          console.log("Recording voice for search...")
+
+          // Stop recording after 10 seconds for demo
+          setTimeout(() => {
+            stream.getTracks().forEach((track) => track.stop())
+            setIsRecording(false)
+            setIsSearchModalOpen(true)
+          }, 10000)
+        })
+        .catch(() => {
+          alert("Voice search requires microphone access. Please enable it and try again.")
+        })
+    } else {
+      alert("Voice search is not supported in your browser.")
     }
   }
 
@@ -526,7 +559,8 @@ const MovieDetectHero: React.FC = () => {
                   disabled={
                     activeSearchType === "soundtrack" ||
                     activeSearchType === "screenshot" ||
-                    activeSearchType === "video"
+                    activeSearchType === "video" ||
+                    activeSearchType === "voice"
                   }
                 />
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center space-x-2">
