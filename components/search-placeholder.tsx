@@ -1,42 +1,65 @@
 "use client"
 
-import { useState } from "react"
-import { Search, Zap, Brain, Eye, Mic, ImageIcon, Film, ArrowRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Search, Mic, ImageIcon, Video, Music, User, Sparkles, ArrowRight, Home, Zap } from "lucide-react"
 
 interface SearchPlaceholderProps {
-  searchQuery?: string
-  searchType?: string
-  onClose?: () => void
+  searchType?: "text" | "voice" | "image" | "audio" | "video" | "face"
+  query?: string
 }
 
-export function SearchPlaceholder({ searchQuery, searchType, onClose }: SearchPlaceholderProps) {
-  const [isAnimating, setIsAnimating] = useState(true)
+export function SearchPlaceholder({ searchType = "text", query }: SearchPlaceholderProps) {
+  const [progress, setProgress] = useState(0)
+  const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number; delay: number }>>([])
 
-  const getSearchTypeIcon = (type: string) => {
-    switch (type) {
+  useEffect(() => {
+    // Animate progress bar
+    const timer = setInterval(() => {
+      setProgress((prev) => (prev >= 75 ? 75 : prev + 1))
+    }, 50)
+
+    // Generate floating particles
+    const newParticles = Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      delay: Math.random() * 2,
+    }))
+    setParticles(newParticles)
+
+    return () => clearInterval(timer)
+  }, [])
+
+  const getSearchIcon = () => {
+    switch (searchType) {
       case "voice":
-        return <Mic className="w-6 h-6" />
+        return <Mic className="w-8 h-8" />
       case "image":
-        return <ImageIcon className="w-6 h-6" />
+        return <ImageIcon className="w-8 h-8" />
       case "audio":
-        return <Film className="w-6 h-6" />
+        return <Music className="w-8 h-8" />
+      case "video":
+        return <Video className="w-8 h-8" />
       case "face":
-        return <Eye className="w-6 h-6" />
+        return <User className="w-8 h-8" />
       default:
-        return <Search className="w-6 h-6" />
+        return <Search className="w-8 h-8" />
     }
   }
 
-  const getSearchTypeLabel = (type: string) => {
-    switch (type) {
+  const getSearchLabel = () => {
+    switch (searchType) {
       case "voice":
         return "Voice Search"
       case "image":
         return "Image Search"
       case "audio":
         return "Audio Search"
+      case "video":
+        return "Video Search"
       case "face":
         return "Face Recognition"
       default:
@@ -45,150 +68,129 @@ export function SearchPlaceholder({ searchQuery, searchType, onClose }: SearchPl
   }
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
-      {/* Animated Background */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 relative overflow-hidden">
+      {/* Animated Background Particles */}
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-teal-900/20 via-black to-emerald-900/20" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(20,184,166,0.1),transparent_50%)]" />
-
-        {/* Animated particles */}
-        <div className="absolute inset-0">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 bg-teal-400/30 rounded-full animate-pulse"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${2 + Math.random() * 2}s`,
-              }}
-            />
-          ))}
-        </div>
+        {particles.map((particle) => (
+          <div
+            key={particle.id}
+            className="absolute w-1 h-1 bg-teal-400 rounded-full opacity-30 animate-pulse"
+            style={{
+              left: `${particle.x}%`,
+              top: `${particle.y}%`,
+              animationDelay: `${particle.delay}s`,
+            }}
+          />
+        ))}
       </div>
 
-      <div className="relative z-10 flex items-center justify-center min-h-screen p-6">
-        <div className="max-w-2xl mx-auto text-center space-y-8">
-          {/* Logo and Branding */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-center space-x-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-teal-400 to-emerald-500 rounded-xl flex items-center justify-center">
-                <Brain className="w-7 h-7 text-white" />
-              </div>
-              <span className="text-3xl font-bold bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">
-                MovieDetect
-              </span>
-            </div>
-
-            {/* Search Type Indicator */}
-            {searchType && (
-              <Card className="bg-black/40 backdrop-blur-md border-gray-800 inline-block">
-                <CardContent className="px-6 py-3">
-                  <div className="flex items-center space-x-3 text-teal-400">
-                    {getSearchTypeIcon(searchType)}
-                    <span className="font-medium">{getSearchTypeLabel(searchType)}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* Main Content */}
-          <div className="space-y-6">
-            {/* Animated Search Icon */}
+      {/* Main Content */}
+      <div className="relative z-10 container mx-auto px-4 py-16 flex items-center justify-center min-h-screen">
+        <div className="max-w-2xl mx-auto text-center">
+          {/* Search Icon with Pulse Animation */}
+          <div className="mb-8 flex justify-center">
             <div className="relative">
-              <div className="w-24 h-24 mx-auto bg-gradient-to-br from-teal-500/20 to-emerald-500/20 rounded-full flex items-center justify-center mb-6">
-                <div className={`transition-transform duration-1000 ${isAnimating ? "scale-110" : "scale-100"}`}>
-                  <Search className="w-12 h-12 text-teal-400" />
-                </div>
-              </div>
-
-              {/* Pulsing rings */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-24 h-24 border-2 border-teal-400/30 rounded-full animate-ping" />
-                <div className="absolute w-32 h-32 border border-emerald-400/20 rounded-full animate-pulse" />
-              </div>
-            </div>
-
-            {/* Main Message */}
-            <div className="space-y-4">
-              <h1 className="text-4xl md:text-5xl font-bold text-white">AI Search Coming Soon</h1>
-              <p className="text-xl text-gray-300 max-w-lg mx-auto leading-relaxed">
-                We're building something incredible. Our advanced AI-powered movie detection system is currently under
-                development.
-              </p>
-            </div>
-
-            {/* Search Query Display */}
-            {searchQuery && (
-              <Card className="bg-black/40 backdrop-blur-md border-gray-800 max-w-md mx-auto">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-3">
-                    <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    <span className="text-gray-300 truncate">"{searchQuery}"</span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Features Preview */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto mt-8">
-              {[
-                { icon: <Mic className="w-5 h-5" />, label: "Voice" },
-                { icon: <ImageIcon className="w-5 h-5" />, label: "Image" },
-                { icon: <Film className="w-5 h-5" />, label: "Audio" },
-                { icon: <Eye className="w-5 h-5" />, label: "Face" },
-              ].map((feature, index) => (
-                <Card key={index} className="bg-black/20 backdrop-blur-sm border-gray-800/50">
-                  <CardContent className="p-4 text-center">
-                    <div className="text-teal-400 mb-2 flex justify-center">{feature.icon}</div>
-                    <span className="text-sm text-gray-400">{feature.label}</span>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {/* Progress Indicator */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-center space-x-2 text-sm text-gray-400">
-                <Zap className="w-4 h-4 text-teal-400" />
-                <span>Development in progress</span>
-              </div>
-
-              <div className="max-w-xs mx-auto">
-                <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full animate-pulse w-3/4" />
-                </div>
-              </div>
-            </div>
-
-            {/* Call to Action */}
-            <div className="space-y-4 pt-4">
-              <p className="text-gray-400">Want to be notified when it's ready?</p>
-
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button
-                  onClick={onClose}
-                  className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white px-8"
-                >
-                  Back to Home
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="border-gray-600 text-gray-300 hover:border-teal-400 hover:text-teal-400 bg-transparent px-8"
-                >
-                  Get Notified
-                </Button>
+              <div className="absolute inset-0 bg-teal-500 rounded-full animate-ping opacity-20"></div>
+              <div className="relative bg-gradient-to-r from-teal-500 to-emerald-500 p-6 rounded-full text-white">
+                {getSearchIcon()}
               </div>
             </div>
           </div>
 
-          {/* Footer Note */}
-          <div className="pt-8 border-t border-gray-800">
-            <p className="text-sm text-gray-500">Expected launch: Coming soon • Follow our progress for updates</p>
+          {/* Main Heading */}
+          <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
+            <span className="bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">
+              MovieDetect
+            </span>
+          </h1>
+
+          <h2 className="text-2xl md:text-3xl font-semibold text-gray-300 mb-6">{getSearchLabel()} Coming Soon</h2>
+
+          {/* Search Query Display */}
+          {query && (
+            <Card className="mb-8 bg-gray-800/50 border-gray-700 backdrop-blur-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <Badge variant="outline" className="border-teal-500 text-teal-400">
+                    {getSearchLabel()}
+                  </Badge>
+                  <span className="text-white font-medium">"{query}"</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Development Status */}
+          <div className="mb-8">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Zap className="w-5 h-5 text-yellow-500" />
+              <span className="text-lg font-medium text-white">Development in Progress</span>
+            </div>
+
+            <div className="bg-gray-800 rounded-full h-3 mb-2 overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-teal-500 to-emerald-500 h-full transition-all duration-300 ease-out"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <p className="text-sm text-gray-400">{progress}% Complete</p>
+          </div>
+
+          {/* Description */}
+          <p className="text-lg text-gray-300 mb-8 leading-relaxed">
+            We're building an revolutionary AI-powered search experience that will let you find movies using{" "}
+            <span className="text-teal-400 font-semibold">voice commands</span>,{" "}
+            <span className="text-emerald-400 font-semibold">images</span>,{" "}
+            <span className="text-blue-400 font-semibold">audio clips</span>, and even{" "}
+            <span className="text-purple-400 font-semibold">facial recognition</span>.
+          </p>
+
+          {/* Features Preview */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+            {[
+              { icon: <Mic className="w-5 h-5" />, label: "Voice Search", color: "text-teal-400" },
+              { icon: <ImageIcon className="w-5 h-5" />, label: "Image Search", color: "text-emerald-400" },
+              { icon: <Music className="w-5 h-5" />, label: "Audio Search", color: "text-blue-400" },
+              { icon: <Video className="w-5 h-5" />, label: "Video Search", color: "text-purple-400" },
+              { icon: <User className="w-5 h-5" />, label: "Face Recognition", color: "text-pink-400" },
+              { icon: <Sparkles className="w-5 h-5" />, label: "AI Powered", color: "text-yellow-400" },
+            ].map((feature, index) => (
+              <Card key={index} className="bg-gray-800/30 border-gray-700 backdrop-blur-sm">
+                <CardContent className="p-4 text-center">
+                  <div className={`${feature.color} mb-2 flex justify-center`}>{feature.icon}</div>
+                  <p className="text-sm text-gray-300">{feature.label}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              size="lg"
+              className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white"
+              onClick={() => (window.location.href = "/")}
+            >
+              <Home className="w-5 h-5 mr-2" />
+              Back to Home
+            </Button>
+
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-gray-600 text-gray-300 hover:bg-gray-800 bg-transparent"
+              onClick={() => (window.location.href = "/features")}
+            >
+              Learn More
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          </div>
+
+          {/* Coming Soon Badge */}
+          <div className="mt-8">
+            <Badge className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white px-4 py-2 text-sm">
+              🚀 Launching Soon - Stay Tuned!
+            </Badge>
           </div>
         </div>
       </div>

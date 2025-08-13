@@ -1,14 +1,24 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 
-// Configuration hook for search functionality
-export function useSearchConfig() {
-  // Set this to false when your API is ready
+interface SearchConfig {
+  isPlaceholderMode: boolean
+  enableRealSearch: () => void
+  enablePlaceholder: () => void
+}
+
+export function useSearchConfig(): SearchConfig {
+  // Set to true to show placeholder, false to use real search
   const [isPlaceholderMode, setIsPlaceholderMode] = useState(true)
 
-  const enableRealSearch = () => setIsPlaceholderMode(false)
-  const enablePlaceholder = () => setIsPlaceholderMode(true)
+  const enableRealSearch = useCallback(() => {
+    setIsPlaceholderMode(false)
+  }, [])
+
+  const enablePlaceholder = useCallback(() => {
+    setIsPlaceholderMode(true)
+  }, [])
 
   return {
     isPlaceholderMode,
