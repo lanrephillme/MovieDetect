@@ -15,41 +15,47 @@ export async function POST(request) {
       )
     }
 
-    // Mock voice search processing
-    // In a real app, you would use speech-to-text API
-    const mockTranscription = "action movies with superheroes"
+    // In a real app, you would:
+    // 1. Convert audio to text using speech-to-text API
+    // 2. Process the transcribed text for movie search
+    // 3. Return relevant movie results
 
-    const searchResults = [
+    // Mock voice search results
+    const voiceSearchResults = [
       {
-        id: 201,
-        title: "Avengers: Endgame",
-        poster: "/guardians-galaxy-vol-3-poster.png",
-        rating: 8.4,
-        year: 2019,
-        genre: ["Action", "Adventure"],
-        description: "The Avengers assemble once more to reverse Thanos' actions and restore balance to the universe.",
-        voiceMatch: 94,
-        transcription: mockTranscription,
+        id: 1,
+        title: "Inception",
+        poster: "/inception-movie-poster.png",
+        rating: 8.8,
+        year: 2010,
+        genre: ["Sci-Fi", "Thriller"],
+        description:
+          "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
+        matchScore: 92,
+        matchReason: "Voice description match",
+        transcription: "That movie about dreams within dreams",
       },
       {
-        id: 202,
-        title: "Spider-Man: No Way Home",
-        poster: "/spider-man-across-spider-verse-inspired-poster.png",
-        rating: 8.2,
-        year: 2021,
-        genre: ["Action", "Adventure"],
+        id: 2,
+        title: "The Matrix",
+        poster: "/matrix-movie-poster.png",
+        rating: 8.7,
+        year: 1999,
+        genre: ["Sci-Fi", "Action"],
         description:
-          "Spider-Man's identity is revealed, bringing his superhero responsibilities into conflict with his normal life.",
-        voiceMatch: 89,
-        transcription: mockTranscription,
+          "When a beautiful stranger leads computer hacker Neo to a forbidding underworld, he discovers the shocking truth--the life he knows is the elaborate deception of an evil cyber-intelligence.",
+        matchScore: 87,
+        matchReason: "Similar themes",
+        transcription: "That movie about dreams within dreams",
       },
     ]
 
     return NextResponse.json({
       success: true,
-      data: searchResults,
-      transcription: mockTranscription,
-      total: searchResults.length,
+      data: voiceSearchResults,
+      transcription: "That movie about dreams within dreams",
+      total: voiceSearchResults.length,
+      searchType: "voice",
     })
   } catch (error) {
     console.error("Error in voice search:", error)

@@ -15,44 +15,48 @@ export async function POST(request) {
       )
     }
 
-    // Mock audio analysis
-    // In a real app, you would use audio fingerprinting or music recognition
-    const detectedGenre = "orchestral soundtrack"
-    const mood = "epic and dramatic"
+    // In a real app, you would:
+    // 1. Analyze audio for music, dialogue, sound effects
+    // 2. Use audio fingerprinting to match against movie soundtracks
+    // 3. Extract dialogue and match against movie scripts
+    // 4. Return relevant movie results
 
-    const searchResults = [
+    // Mock audio search results
+    const audioSearchResults = [
       {
-        id: 401,
-        title: "Inception",
-        poster: "/inception-movie-poster.png",
-        rating: 8.8,
-        year: 2010,
-        genre: ["Sci-Fi", "Thriller"],
-        description: "A thief who steals corporate secrets through dream-sharing technology.",
-        audioMatch: 95,
-        detectedGenre,
-        mood,
-      },
-      {
-        id: 402,
+        id: 1,
         title: "Interstellar",
         poster: "/interstellar-inspired-poster.png",
         rating: 8.6,
         year: 2014,
         genre: ["Sci-Fi", "Drama"],
-        description: "A team of explorers travel through a wormhole in space to ensure humanity's survival.",
-        audioMatch: 88,
-        detectedGenre,
-        mood,
+        description:
+          "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
+        matchScore: 94,
+        matchReason: "Soundtrack match",
+        audioFeatures: ["orchestral music", "Hans Zimmer composition", "organ sounds"],
+      },
+      {
+        id: 2,
+        title: "Inception",
+        poster: "/inception-movie-poster.png",
+        rating: 8.8,
+        year: 2010,
+        genre: ["Sci-Fi", "Thriller"],
+        description:
+          "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
+        matchScore: 88,
+        matchReason: "Similar composer",
+        audioFeatures: ["orchestral music", "Hans Zimmer composition"],
       },
     ]
 
     return NextResponse.json({
       success: true,
-      data: searchResults,
-      detectedGenre,
-      mood,
-      total: searchResults.length,
+      data: audioSearchResults,
+      audioFeatures: ["orchestral music", "Hans Zimmer composition", "organ sounds"],
+      total: audioSearchResults.length,
+      searchType: "audio",
     })
   } catch (error) {
     console.error("Error in audio search:", error)

@@ -1,14 +1,14 @@
 "use client"
 
-import { Github, Twitter, Linkedin, Mail, Heart } from "lucide-react"
 import Link from "next/link"
+import { Film, Twitter, Facebook, Instagram, Youtube, Github, Mail } from "lucide-react"
 
 const footerLinks = {
   product: [
     { name: "Features", href: "/features" },
     { name: "Pricing", href: "/pricing" },
-    { name: "API", href: "/api" },
-    { name: "Documentation", href: "/docs" },
+    { name: "API", href: "/api-docs" },
+    { name: "Integrations", href: "/integrations" },
   ],
   company: [
     { name: "About", href: "/about" },
@@ -18,9 +18,9 @@ const footerLinks = {
   ],
   support: [
     { name: "Help Center", href: "/help" },
-    { name: "Community", href: "/community" },
+    { name: "Documentation", href: "/docs" },
     { name: "Status", href: "/status" },
-    { name: "Feedback", href: "/feedback" },
+    { name: "Community", href: "/community" },
   ],
   legal: [
     { name: "Privacy Policy", href: "/privacy" },
@@ -31,53 +31,49 @@ const footerLinks = {
 }
 
 const socialLinks = [
-  { name: "GitHub", href: "https://github.com", icon: Github },
-  { name: "Twitter", href: "https://twitter.com", icon: Twitter },
-  { name: "LinkedIn", href: "https://linkedin.com", icon: Linkedin },
-  { name: "Email", href: "mailto:hello@moviedetect.com", icon: Mail },
+  { name: "Twitter", href: "https://twitter.com/moviedetect", icon: Twitter },
+  { name: "Facebook", href: "https://facebook.com/moviedetect", icon: Facebook },
+  { name: "Instagram", href: "https://instagram.com/moviedetect", icon: Instagram },
+  { name: "YouTube", href: "https://youtube.com/moviedetect", icon: Youtube },
+  { name: "GitHub", href: "https://github.com/moviedetect", icon: Github },
 ]
 
 export function Footer() {
   return (
-    <footer className="bg-gray-950 border-t border-gray-800">
+    <footer className="bg-gray-900 text-gray-300">
       <div className="max-w-7xl mx-auto px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
           {/* Brand Section */}
           <div className="lg:col-span-2">
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">MD</span>
-              </div>
-              <span className="text-xl font-bold text-white">MovieDetect</span>
-            </div>
+            <Link href="/" className="flex items-center space-x-2 mb-6">
+              <Film className="h-8 w-8 text-teal-500" />
+              <span className="text-2xl font-bold text-white">MovieDetect</span>
+            </Link>
             <p className="text-gray-400 mb-6 max-w-sm">
-              Discover movies like never before with AI-powered search technology. Find your next favorite film using
-              text, images, voice, and more.
+              The most advanced AI-powered movie discovery platform. Find any movie using text, images, voice, or video
+              with unprecedented accuracy.
             </p>
             <div className="flex space-x-4">
-              {socialLinks.map((social) => {
-                const Icon = social.icon
-                return (
-                  <Link
-                    key={social.name}
-                    href={social.href}
-                    className="w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-lg flex items-center justify-center transition-colors"
-                    aria-label={social.name}
-                  >
-                    <Icon className="w-5 h-5 text-gray-400 hover:text-white" />
-                  </Link>
-                )
-              })}
+              {socialLinks.map((social) => (
+                <a
+                  key={social.name}
+                  href={social.href}
+                  className="text-gray-400 hover:text-teal-400 transition-colors duration-200"
+                  aria-label={social.name}
+                >
+                  <social.icon className="h-5 w-5" />
+                </a>
+              ))}
             </div>
           </div>
 
-          {/* Links Sections */}
+          {/* Product Links */}
           <div>
             <h3 className="text-white font-semibold mb-4">Product</h3>
             <ul className="space-y-3">
               {footerLinks.product.map((link) => (
                 <li key={link.name}>
-                  <Link href={link.href} className="text-gray-400 hover:text-white transition-colors">
+                  <Link href={link.href} className="hover:text-teal-400 transition-colors duration-200">
                     {link.name}
                   </Link>
                 </li>
@@ -85,12 +81,13 @@ export function Footer() {
             </ul>
           </div>
 
+          {/* Company Links */}
           <div>
             <h3 className="text-white font-semibold mb-4">Company</h3>
             <ul className="space-y-3">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
-                  <Link href={link.href} className="text-gray-400 hover:text-white transition-colors">
+                  <Link href={link.href} className="hover:text-teal-400 transition-colors duration-200">
                     {link.name}
                   </Link>
                 </li>
@@ -98,12 +95,13 @@ export function Footer() {
             </ul>
           </div>
 
+          {/* Support Links */}
           <div>
             <h3 className="text-white font-semibold mb-4">Support</h3>
             <ul className="space-y-3">
               {footerLinks.support.map((link) => (
                 <li key={link.name}>
-                  <Link href={link.href} className="text-gray-400 hover:text-white transition-colors">
+                  <Link href={link.href} className="hover:text-teal-400 transition-colors duration-200">
                     {link.name}
                   </Link>
                 </li>
@@ -111,12 +109,13 @@ export function Footer() {
             </ul>
           </div>
 
+          {/* Legal Links */}
           <div>
             <h3 className="text-white font-semibold mb-4">Legal</h3>
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
                 <li key={link.name}>
-                  <Link href={link.href} className="text-gray-400 hover:text-white transition-colors">
+                  <Link href={link.href} className="hover:text-teal-400 transition-colors duration-200">
                     {link.name}
                   </Link>
                 </li>
@@ -125,13 +124,36 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Bottom Section */}
-        <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-400 text-sm">© 2024 MovieDetect. All rights reserved.</p>
-          <div className="flex items-center space-x-1 text-gray-400 text-sm mt-4 md:mt-0">
-            <span>Made with</span>
-            <Heart className="w-4 h-4 text-red-500 fill-current" />
-            <span>for movie lovers everywhere</span>
+        {/* Newsletter Signup */}
+        <div className="border-t border-gray-800 mt-12 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="mb-4 md:mb-0">
+              <h4 className="text-white font-semibold mb-2">Stay in the loop</h4>
+              <p className="text-gray-400">Get the latest updates and movie recommendations.</p>
+            </div>
+            <div className="flex space-x-3">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+              />
+              <button className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors duration-200 flex items-center space-x-2">
+                <Mail className="h-4 w-4" />
+                <span>Subscribe</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <p className="text-gray-400 text-sm">© {new Date().getFullYear()} MovieDetect. All rights reserved.</p>
+          <div className="flex items-center space-x-6 mt-4 md:mt-0">
+            <span className="text-gray-400 text-sm">Made with ❤️ for movie lovers</span>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-green-400 text-sm">All systems operational</span>
+            </div>
           </div>
         </div>
       </div>
