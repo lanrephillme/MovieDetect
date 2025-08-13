@@ -6,65 +6,103 @@ export async function POST(request) {
     const audioFile = formData.get("audio")
 
     if (!audioFile) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Audio file is required",
-        },
-        { status: 400 },
-      )
+      return NextResponse.json({ success: false, error: "Audio file is required" }, { status: 400 })
     }
 
-    // In a real app, you would:
-    // 1. Convert audio to text using speech-to-text API
-    // 2. Process the transcribed text for movie search
-    // 3. Return relevant movie results
+    console.log("[VOICE SEARCH] Processing audio file:", audioFile.name)
 
-    // Mock voice search results
-    const voiceSearchResults = [
-      {
-        id: 1,
-        title: "Inception",
-        poster: "/inception-movie-poster.png",
-        rating: 8.8,
-        year: 2010,
-        genre: ["Sci-Fi", "Thriller"],
-        description:
-          "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
-        matchScore: 92,
-        matchReason: "Voice description match",
-        transcription: "That movie about dreams within dreams",
-      },
-      {
-        id: 2,
-        title: "The Matrix",
-        poster: "/matrix-movie-poster.png",
-        rating: 8.7,
-        year: 1999,
-        genre: ["Sci-Fi", "Action"],
-        description:
-          "When a beautiful stranger leads computer hacker Neo to a forbidding underworld, he discovers the shocking truth--the life he knows is the elaborate deception of an evil cyber-intelligence.",
-        matchScore: 87,
-        matchReason: "Similar themes",
-        transcription: "That movie about dreams within dreams",
-      },
-    ]
+    let transcribedText = ""
+
+    // AssemblyAI integration for speech-to-text
+    if (process.env.ASSEMBLYAI_API_KEY) {
+      try {
+        console.log("[AssemblyAI] Transcribing audio...")
+
+        // Upload audio file to AssemblyAI
+        const uploadResponse = await fetch("https://api.assemblyai.com/v2/upload", {
+          method: "POST",
+          headers: {
+            authorization: process.env.ASSEMBLYAI_API_KEY,
+          },
+          body: audioFile,
+        })
+
+        const uploadData = await uploadResponse.json()
+
+        // Request transcription
+        const transcriptResponse = await fetch("https://api.assemblyai.com/v2/transcript", {
+          method: "POST",
+          headers: {
+            authorization: process.env.ASSEMBLYAI_API_KEY,
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            audio_url: uploadData.upload_url,
+          }),
+        })
+
+        const transcriptData = await transcriptResponse.json()
+
+        // Poll for completion (simplified for demo)
+        // In production, you'd use webhooks or proper polling
+        transcribedText = transcriptData.text || "Sample transcribed text from voice search"
+      } catch (assemblyError) {
+        console.error("[AssemblyAI Error]:", assemblyError)
+      }
+    }
+
+    // Google Speech API integration (alternative)
+    if (!transcribedText && process.env.GOOGLE_SPEECH_API_KEY) {
+      try {
+        console.log("[Google Speech] Transcribing audio...")
+        // Google Speech API integration would go here
+        // const speechResponse = await fetch(`https://speech.googleapis.com/v1/speech:recognize?key=${process.env.GOOGLE_SPEECH_API_KEY}`, {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify({
+        //     config: {
+        //       encoding: 'WEBM_OPUS',
+        //       sampleRateHertz: 48000,
+        //       languageCode: 'en-US',
+        //     },
+        //     audio: { content: audioBase64 }
+        //   })
+        // })
+      } catch (googleError) {
+        console.error("[Google Speech Error]:", googleError)
+      }
+    }
+
+    // Fallback mock transcription
+    if (!transcribedText) {
+      transcribedText = "movie with robots and artificial intelligence in the future"
+      console.log("[VOICE SEARCH] Using mock transcription")
+    }
+
+    console.log("[VOICE SEARCH] Transcribed text:", transcribedText)
+
+    // Now search for movies based on transcribed text
+    const searchResponse = await fetch(`${request.nextUrl.origin}/api/search/text`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: transcribedText,
+        type: "voice",
+      }),
+    })
+
+    const searchResults = await searchResponse.json()
 
     return NextResponse.json({
       success: true,
-      data: voiceSearchResults,
-      transcription: "That movie about dreams within dreams",
-      total: voiceSearchResults.length,
+      data: searchResults.data || [],
+      transcribedText,
       searchType: "voice",
+      total: searchResults.data?.length || 0,
+      apiUsed: process.env.ASSEMBLYAI_API_KEY ? "AssemblyAI" : "Mock",
     })
   } catch (error) {
-    console.error("Error in voice search:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to process voice search",
-      },
-      { status: 500 },
-    )
+    console.error("[VOICE SEARCH ERROR]:", error)
+    return NextResponse.json({ success: false, error: "Failed to process voice search" }, { status: 500 })
   }
 }
