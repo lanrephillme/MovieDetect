@@ -2,10 +2,10 @@
 
 import type React from "react"
 import { useState, useRef } from "react"
-import Link from "next/link"
-import { Search, Mic, ImageIcon, Video, User, Menu, X, Camera } from "lucide-react"
+import { Search, Mic, ImageIcon, Video, User, X, Camera, Upload, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Card, CardContent } from "@/components/ui/card"
 import { SearchModal } from "@/components/search-modal"
 
 const MovieDetectHero: React.FC = () => {
@@ -16,9 +16,9 @@ const MovieDetectHero: React.FC = () => {
   )
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
   const [isDragOver, setIsDragOver] = useState(false)
-  const [isRecording, setIsRecording] = useState(false)
   const [isMicCancelled, setIsMicCancelled] = useState(false)
   const [isCameraCancelled, setIsCameraCancelled] = useState(false)
+  const [isRecording, setIsRecording] = useState(false) // Declared setIsRecording variable
   const audioInputRef = useRef<HTMLInputElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
@@ -62,20 +62,20 @@ const MovieDetectHero: React.FC = () => {
     },
   ]
 
-  const handleSearch = async () => {
-    if (activeSearchType === "soundtrack") {
+  const handleSearch = async (type: string) => {
+    if (type === "soundtrack") {
       handleSoundtrackSearch()
-    } else if (activeSearchType === "screenshot") {
+    } else if (type === "screenshot") {
       handleScreenshotSearch()
-    } else if (activeSearchType === "video") {
+    } else if (type === "video") {
       handleVideoSearch()
-    } else if (searchQuery.trim() || activeSearchType !== "scene") {
+    } else if (searchQuery.trim() || type !== "scene") {
       // TODO: Call appropriate search API based on search type
       try {
         let endpoint = "/api/search/text"
         const payload: any = { query: searchQuery }
 
-        switch (activeSearchType) {
+        switch (type) {
           case "actor":
             endpoint = "/api/search/text"
             payload.type = "actor"
@@ -310,288 +310,148 @@ const MovieDetectHero: React.FC = () => {
 
   return (
     <>
-      <div className="relative min-h-screen overflow-hidden">
-        <div className="absolute inset-0 w-full h-full">
-          <div className="absolute inset-0 grid grid-cols-8 gap-2 transform rotate-12 scale-150 opacity-20">
-            {Array.from({ length: 64 }).map((_, i) => (
-              <div
-                key={i}
-                className="aspect-[2/3] bg-gradient-to-br from-gray-800 to-gray-900 rounded-sm"
-                style={{
-                  backgroundImage: `url(/placeholder.svg?height=300&width=200&query=movie-poster-${i % 10})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                }}
+      <section className="relative min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-2000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse animation-delay-4000"></div>
+        </div>
+
+        <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
+          {/* Main heading */}
+          <div className="mb-8">
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 leading-tight">
+              Find Any Movie
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400">
+                Describe It Any Way
+              </span>
+            </h1>
+            <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+              Can't remember the title? No problem! Describe scenes, upload images, hum soundtracks, or record video
+              clips. Our AI will find it.
+            </p>
+          </div>
+
+          {/* Search input */}
+          <div className="mb-8">
+            <div className="relative max-w-2xl mx-auto">
+              <Input
+                type="text"
+                placeholder="Describe the movie... 'A movie about dreams within dreams' or 'That film with the spinning top'"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-14 pl-6 pr-16 text-lg bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder-gray-400 rounded-full focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               />
-            ))}
-          </div>
-        </div>
-
-        <div className="absolute inset-0 w-full h-full opacity-60">
-          <iframe
-            src="https://my.spline.design/noirscene-AcYYkFVcm6oeORzoelh6NrW5/"
-            frameBorder="0"
-            width="100%"
-            height="100%"
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{ pointerEvents: "none" }}
-          />
-        </div>
-
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80 backdrop-blur-[1px]" />
-
-        <nav className="relative z-50 flex items-center justify-between px-6 py-3 backdrop-blur-xl bg-white/5 border-b border-white/10">
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="w-7 h-7 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-lg flex items-center justify-center">
-              <Search className="w-4 h-4 text-white" />
-            </div>
-            <span className="text-xl font-bold text-white tracking-tight">MovieDetect</span>
-          </Link>
-
-          <div className="hidden md:flex items-center space-x-1">
-            <Link
-              href="/"
-              className="px-3 py-1.5 text-sm text-white font-medium hover:bg-white/10 rounded-md transition-all duration-200"
-            >
-              Home
-            </Link>
-            <Link
-              href="/features"
-              className="px-3 py-1.5 text-sm text-gray-300 font-medium hover:text-white hover:bg-white/10 rounded-md transition-all duration-200"
-            >
-              Features
-            </Link>
-            <Link
-              href="/pricing"
-              className="px-3 py-1.5 text-sm text-gray-300 font-medium hover:text-white hover:bg-white/10 rounded-md transition-all duration-200"
-            >
-              Pricing
-            </Link>
-            <Link
-              href="/contact"
-              className="px-3 py-1.5 text-sm text-gray-300 font-medium hover:text-white hover:bg-white/10 rounded-md transition-all duration-200"
-            >
-              Contact
-            </Link>
-            <Link
-              href="/watchlist"
-              className="px-3 py-1.5 text-sm text-gray-300 font-medium hover:text-white hover:bg-white/10 rounded-md transition-all duration-200"
-            >
-              Watchlist
-            </Link>
-          </div>
-
-          <div className="hidden md:flex items-center space-x-2">
-            <Link href="/login">
               <Button
-                variant="ghost"
-                className="text-gray-300 hover:text-white hover:bg-white/10 font-medium px-3 py-1.5 h-auto text-sm rounded-md"
+                onClick={() => handleSearch("text")}
+                className="absolute right-2 top-2 h-10 w-10 rounded-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 border-0"
               >
-                Sign In
+                <Search className="h-5 w-5" />
               </Button>
-            </Link>
-            <Link href="/signup">
-              <Button className="bg-white text-gray-900 hover:bg-gray-100 font-medium px-4 py-1.5 h-auto text-sm rounded-md transition-all duration-200">
-                Get Started
-              </Button>
-            </Link>
-          </div>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden text-white hover:bg-white/10 rounded-md w-8 h-8"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </Button>
-        </nav>
-
-        {isMenuOpen && (
-          <div className="md:hidden absolute top-[73px] left-0 right-0 z-40 bg-black/95 backdrop-blur-xl border-b border-white/10">
-            <div className="flex flex-col p-6 space-y-1">
-              <Link
-                href="/"
-                className="text-white hover:bg-white/10 px-4 py-3 rounded-lg font-medium transition-all duration-200"
-              >
-                Home
-              </Link>
-              <Link
-                href="/features"
-                className="text-gray-300 hover:text-white hover:bg-white/10 px-4 py-3 rounded-lg font-medium transition-all duration-200"
-              >
-                Features
-              </Link>
-              <Link
-                href="/pricing"
-                className="text-gray-300 hover:text-white hover:bg-white/10 px-4 py-3 rounded-lg font-medium transition-all duration-200"
-              >
-                Pricing
-              </Link>
-              <Link
-                href="/contact"
-                className="text-gray-300 hover:text-white hover:bg-white/10 px-4 py-3 rounded-lg font-medium transition-all duration-200"
-              >
-                Contact
-              </Link>
-              <Link
-                href="/watchlist"
-                className="text-gray-300 hover:text-white hover:bg-white/10 px-4 py-3 rounded-lg font-medium transition-all duration-200"
-              >
-                Watchlist
-              </Link>
-              <div className="flex flex-col space-y-2 pt-4 mt-4 border-t border-white/10">
-                <Link href="/login">
-                  <Button
-                    variant="ghost"
-                    className="text-gray-300 hover:text-white hover:bg-white/10 justify-start w-full font-medium px-4 py-3 h-auto rounded-lg"
-                  >
-                    Sign In
-                  </Button>
-                </Link>
-                <Link href="/signup">
-                  <Button className="bg-white text-gray-900 hover:bg-gray-100 w-full font-semibold px-4 py-3 h-auto rounded-lg shadow-lg transition-all duration-200">
-                    Get Started
-                  </Button>
-                </Link>
-              </div>
             </div>
           </div>
-        )}
 
-        <div
-          ref={dropZoneRef}
-          className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-100px)] px-6 text-center"
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          <div className="max-w-5xl mx-auto space-y-12">
-            <div className="space-y-8">
-              {/* Reduced font sizes for better balance */}
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-black leading-tight text-white tracking-tight">
-                MovieDetect,{" "}
-                <span className="block mt-2">
-                  a place to{" "}
-                  <span className="bg-gradient-to-r from-teal-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-                    discover
-                  </span>{" "}
-                  and{" "}
-                  <span className="bg-gradient-to-r from-teal-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-                    search
-                  </span>{" "}
-                  movies.
-                </span>
-              </h1>
+          {/* Search methods */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer group">
+              <CardContent className="p-6 text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Upload className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-white font-semibold mb-1">Upload Image</h3>
+                <p className="text-gray-400 text-sm">Screenshot or poster</p>
+              </CardContent>
+            </Card>
 
-              <div className="flex flex-wrap justify-center gap-6 text-sm md:text-base text-gray-300 font-medium">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-teal-400 rounded-full"></div>
-                  <span>AI-Powered</span>
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer group">
+              <CardContent className="p-6 text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Mic className="h-6 w-6 text-white" />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-                  <span>Multi-Modal</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-                  <span>Instant Results</span>
-                </div>
-              </div>
+                <h3 className="text-white font-semibold mb-1">Hum Soundtrack</h3>
+                <p className="text-gray-400 text-sm">Audio recognition</p>
+              </CardContent>
+            </Card>
 
-              <p className="text-base md:text-lg text-gray-200 max-w-3xl mx-auto font-light leading-relaxed">
-                Find movies by describing scenes, uploading images, humming soundtracks, or recording video clips.
-                <br />
-                <span className="text-gray-300">Our advanced AI delivers precise results instantly.</span>
-              </p>
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer group">
+              <CardContent className="p-6 text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-r from-green-500 to-teal-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Video className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-white font-semibold mb-1">Record Clip</h3>
+                <p className="text-gray-400 text-sm">Video analysis</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer group">
+              <CardContent className="p-6 text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Camera className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-white font-semibold mb-1">Face Search</h3>
+                <p className="text-gray-400 text-sm">Actor recognition</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* CTA */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button
+              size="lg"
+              className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white px-8 py-3 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
+              <Sparkles className="mr-2 h-5 w-5" />
+              Try MovieDetect AI
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="border-white/30 text-white hover:bg-white/10 px-8 py-3 rounded-full text-lg font-semibold backdrop-blur-sm bg-transparent"
+            >
+              Watch Demo
+            </Button>
+          </div>
+
+          {/* Stats */}
+          <div className="mt-16 grid grid-cols-3 gap-8 max-w-2xl mx-auto">
+            <div className="text-center">
+              <div className="text-2xl md:text-3xl font-bold text-white mb-1">50M+</div>
+              <div className="text-gray-400 text-sm">Movies Identified</div>
             </div>
-
-            <div className="max-w-2xl mx-auto space-y-6">
-              <div className="relative">
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onPaste={handlePaste}
-                  placeholder={
-                    isDragOver
-                      ? "Drop your file here..."
-                      : activeSearchType === "soundtrack"
-                        ? "Click to record audio or upload soundtrack..."
-                        : activeSearchType === "video"
-                          ? "Click to record video or upload clip..."
-                          : currentSearchType.placeholder
-                  }
-                  className="w-full h-16 bg-black/60 border-gray-600 text-white placeholder-gray-400 focus:border-teal-500 focus:ring-teal-500/20 text-lg pl-14 pr-16"
-                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  disabled={
-                    activeSearchType === "soundtrack" ||
-                    activeSearchType === "screenshot" ||
-                    activeSearchType === "video"
-                  }
-                />
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center space-x-2">
-                  {getSearchIcon()}
-                </div>
-                <Button
-                  onClick={handleSearch}
-                  className="absolute right-2 top-2 bg-teal-600 hover:bg-teal-700 text-white h-12 px-6"
-                >
-                  <Search className="w-5 h-5" />
-                </Button>
-                {isDragOver && (
-                  <div className="absolute inset-0 bg-teal-500/20 border-2 border-dashed border-teal-500 rounded-lg flex items-center justify-center">
-                    <p className="text-teal-400 font-medium">Drop your file here</p>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex flex-wrap justify-center gap-2">
-                {searchTypes.map((type) => {
-                  const Icon = type.icon
-                  return (
-                    <Button
-                      key={type.id}
-                      variant={activeSearchType === type.id ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handleSearchTypeChange(type.id)}
-                      className={`${
-                        activeSearchType === type.id
-                          ? "bg-teal-600 text-white border-transparent shadow-lg"
-                          : "border-gray-500 text-gray-300 hover:border-teal-500 hover:text-teal-400 bg-black/30 backdrop-blur-sm"
-                      } transition-all duration-200`}
-                    >
-                      <Icon className="w-4 h-4 mr-2" />
-                      {type.label}
-                    </Button>
-                  )
-                })}
-              </div>
+            <div className="text-center">
+              <div className="text-2xl md:text-3xl font-bold text-white mb-1">98%</div>
+              <div className="text-gray-400 text-sm">Accuracy Rate</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl md:text-3xl font-bold text-white mb-1">2M+</div>
+              <div className="text-gray-400 text-sm">Happy Users</div>
             </div>
           </div>
         </div>
+      </section>
 
-        <input
-          ref={audioInputRef}
-          type="file"
-          accept="audio/*"
-          className="hidden"
-          onChange={(e) => handleFileUpload(e, "audio")}
-        />
-        <input
-          ref={imageInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => handleFileUpload(e, "image")}
-        />
-        <input
-          ref={videoInputRef}
-          type="file"
-          accept="video/*"
-          className="hidden"
-          onChange={(e) => handleFileUpload(e, "video")}
-        />
-      </div>
+      <input
+        ref={audioInputRef}
+        type="file"
+        accept="audio/*"
+        className="hidden"
+        onChange={(e) => handleFileUpload(e, "audio")}
+      />
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => handleFileUpload(e, "image")}
+      />
+      <input
+        ref={videoInputRef}
+        type="file"
+        accept="video/*"
+        className="hidden"
+        onChange={(e) => handleFileUpload(e, "video")}
+      />
 
       <SearchModal
         isOpen={isSearchModalOpen}
