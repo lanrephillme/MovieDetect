@@ -447,12 +447,15 @@ export function MovieCarousels() {
     hoverTimeoutRef.current = setTimeout(() => {
       setHoveredMovie(movieId)
 
-      // Start preview video after 1.5s delay
+      // Start preview video after 1.5s delay with error handling
       previewTimeoutRef.current = setTimeout(() => {
         const video = previewVideos[movieId]
         if (video) {
           video.currentTime = 0
-          video.play().catch(console.error)
+          video.play().catch((error) => {
+            console.log("Video playback failed, using static image:", error)
+            // Video will fallback to poster image automatically
+          })
         }
       }, 1500)
     }, 200)
@@ -535,6 +538,11 @@ export function MovieCarousels() {
       video.loop = true
       video.playsInline = true
       video.preload = "metadata"
+
+      // Add error handling
+      video.onerror = () => {
+        console.log(`Video failed to load for movie ${movie.id}, using poster image`)
+      }
 
       setPreviewVideos((prev) => ({
         ...prev,
@@ -630,6 +638,10 @@ export function MovieCarousels() {
                           loop
                           playsInline
                           poster={movie.backdrop || movie.poster}
+                          onError={(e) => {
+                            console.log("Video element error, falling back to poster")
+                            e.currentTarget.style.display = "none"
+                          }}
                         >
                           <source src={movie.previewUrl} type="video/mp4" />
                         </video>

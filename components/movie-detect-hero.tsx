@@ -98,7 +98,10 @@ export function MovieDetectHero() {
             .then(() => {
               setIsVideoPlaying(true)
             })
-            .catch(console.error)
+            .catch((error) => {
+              console.log("Hero video playback failed:", error)
+              setIsVideoPlaying(false)
+            })
         }
       }, 2000)
     }
@@ -121,7 +124,10 @@ export function MovieDetectHero() {
           .then(() => {
             setIsVideoPlaying(true)
           })
-          .catch(console.error)
+          .catch((error) => {
+            console.log("Video play failed:", error)
+            setIsVideoPlaying(false)
+          })
       }
     }
   }
@@ -206,8 +212,8 @@ export function MovieDetectHero() {
             onLoadedData={() => {
               // Video is ready to play
             }}
-            onError={() => {
-              // Fallback to static image if video fails
+            onError={(e) => {
+              console.log("Hero video failed to load, using fallback image")
               setIsVideoPlaying(false)
             }}
           >

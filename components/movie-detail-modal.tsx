@@ -292,7 +292,10 @@ export function MovieDetailModal({ isOpen, onClose, movieId }: MovieDetailModalP
           .then(() => {
             setIsVideoPlaying(true)
           })
-          .catch(console.error)
+          .catch((error) => {
+            console.log("Modal video play failed:", error)
+            setIsVideoPlaying(false)
+          })
       }
     }
   }
@@ -388,9 +391,16 @@ export function MovieDetailModal({ isOpen, onClose, movieId }: MovieDetailModalP
                           .then(() => {
                             setIsVideoPlaying(true)
                           })
-                          .catch(console.error)
+                          .catch((error) => {
+                            console.log("Modal video autoplay failed:", error)
+                            setIsVideoPlaying(false)
+                          })
                       }
                     }, 2000)
+                  }}
+                  onError={(e) => {
+                    console.log("Modal video failed to load, using fallback image")
+                    setIsVideoPlaying(false)
                   }}
                 >
                   <source src={movie.trailer} type="video/mp4" />
