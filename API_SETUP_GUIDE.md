@@ -1,5 +1,7 @@
 # MovieDetect API Setup Guide
 
+This guide provides comprehensive instructions for setting up all the APIs and integrations required for the MovieDetect application.
+
 ## 📋 Complete API Requirements Checklist
 
 ### ✅ Already Configured (Keep These)
@@ -291,3 +293,311 @@ To resolve the "This generation uses integrations" message, you need to:
 4. **Test the application** to ensure all integrations work properly
 
 The codebase is now complete and ready - you just need to configure the API keys to unlock all features! 🎯
+
+## Environment Variables Setup
+
+Create a `.env.local` file in your project root with the following variables:
+
+\`\`\`env
+# TMDb API (Required for movie data)
+TMDB_API_KEY=your_tmdb_api_key_here
+
+# OMDb API (Optional - for additional movie data)
+OMDB_API_KEY=your_omdb_api_key_here
+
+# Authentication
+JWT_SECRET=your_jwt_secret_here
+JWT_EXPIRES_IN=7d
+
+# Email Service (SendGrid)
+SENDGRID_API_KEY=your_sendgrid_api_key_here
+FROM_EMAIL=noreply@moviedetect.com
+
+# Application URLs
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_URL=http://localhost:3000
+
+# AWS (for file uploads and storage)
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=your_aws_access_key_here
+AWS_SECRET_ACCESS_KEY=your_aws_secret_key_here
+
+# Stripe (for payments)
+STRIPE_SECRET_KEY=your_stripe_secret_key_here
+
+# JustWatch API (for streaming platforms)
+JUSTWATCH_API_KEY=your_justwatch_api_key_here
+
+# OpenAI API (for AI features)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Google Cloud (for speech-to-text and vision)
+GOOGLE_CLOUD_PROJECT_ID=your_project_id
+GOOGLE_CLOUD_PRIVATE_KEY=your_private_key
+GOOGLE_CLOUD_CLIENT_EMAIL=your_client_email
+
+# Database (if using external database)
+DATABASE_URL=your_database_url_here
+\`\`\`
+
+## API Integrations
+
+### 1. TMDb API (The Movie Database)
+
+**Purpose**: Primary source for movie data, images, and metadata.
+
+**Setup**:
+1. Visit [TMDb API](https://www.themoviedb.org/settings/api)
+2. Create an account and request an API key
+3. Add the key to your `.env.local` file
+
+**Usage**: Used in all movie-related API routes for fetching movie details, search results, and recommendations.
+
+### 2. OMDb API (Optional)
+
+**Purpose**: Additional movie data and ratings.
+
+**Setup**:
+1. Visit [OMDb API](http://www.omdbapi.com/apikey.aspx)
+2. Request a free API key
+3. Add to your environment variables
+
+### 3. JustWatch API
+
+**Purpose**: Streaming platform availability data.
+
+**Setup**:
+1. Contact JustWatch for API access
+2. Implement in `/api/streaming/platforms/route.js`
+
+**Note**: This is a premium service. For development, mock data is provided.
+
+### 4. OpenAI API
+
+**Purpose**: AI-powered search features and recommendations.
+
+**Setup**:
+1. Visit [OpenAI API](https://platform.openai.com/api-keys)
+2. Create an API key
+3. Add to environment variables
+
+**Usage**: Powers the AI search functionality and movie recommendations.
+
+### 5. Google Cloud APIs
+
+**Purpose**: Speech-to-text, image recognition, and video analysis.
+
+**Required APIs**:
+- Speech-to-Text API
+- Vision API
+- Video Intelligence API
+
+**Setup**:
+1. Create a Google Cloud project
+2. Enable the required APIs
+3. Create a service account and download credentials
+4. Add credentials to environment variables
+
+### 6. AWS Services
+
+**Purpose**: File storage and processing.
+
+**Required Services**:
+- S3 (file storage)
+- Lambda (serverless functions)
+- Rekognition (image/video analysis)
+
+**Setup**:
+1. Create AWS account
+2. Set up S3 bucket for file uploads
+3. Configure IAM user with appropriate permissions
+4. Add credentials to environment variables
+
+## API Routes Implementation
+
+### Movie Data Routes
+
+\`\`\`javascript
+// /api/movies/[id]/route.js
+// Fetches detailed movie information from TMDb
+
+// /api/movies/trending/route.js
+// Gets trending movies
+
+// /api/movies/popular/route.js
+// Gets popular movies
+
+// /api/movies/top-rated/route.js
+// Gets top-rated movies
+
+// /api/movies/new-releases/route.js
+// Gets new releases
+\`\`\`
+
+### Search Routes
+
+\`\`\`javascript
+// /api/search/text/route.js
+// Text-based movie search
+
+// /api/search/voice/route.js
+// Voice search with speech-to-text
+
+// /api/search/image/route.js
+// Image-based search using computer vision
+
+// /api/search/audio/route.js
+// Audio recognition search
+
+// /api/search/video/route.js
+// Video analysis search
+\`\`\`
+
+### User Management Routes
+
+\`\`\`javascript
+// /api/auth/signup/route.js
+// User registration
+
+// /api/auth/signin/route.js
+// User authentication
+
+// /api/watchlist/add/route.js
+// Add movie to watchlist
+
+// /api/watchlist/remove/route.js
+// Remove movie from watchlist
+\`\`\`
+
+## Development Setup
+
+### 1. Install Dependencies
+
+\`\`\`bash
+npm install
+# or
+yarn install
+\`\`\`
+
+### 2. Set Up Environment Variables
+
+Copy `.env.example` to `.env.local` and fill in your API keys.
+
+### 3. Run Development Server
+
+\`\`\`bash
+npm run dev
+# or
+yarn dev
+\`\`\`
+
+### 4. Test API Endpoints
+
+Use tools like Postman or curl to test your API endpoints:
+
+\`\`\`bash
+# Test movie search
+curl -X POST http://localhost:3000/api/search/text \
+  -H "Content-Type: application/json" \
+  -d '{"query": "blade runner", "searchType": "scene"}'
+
+# Test movie details
+curl http://localhost:3000/api/movies/1
+\`\`\`
+
+## Production Deployment
+
+### Vercel Deployment
+
+1. Connect your GitHub repository to Vercel
+2. Add environment variables in Vercel dashboard
+3. Deploy automatically on push to main branch
+
+### Environment Variables in Production
+
+Ensure all environment variables are properly set in your production environment:
+
+- Vercel: Project Settings → Environment Variables
+- Netlify: Site Settings → Environment Variables
+- AWS: Use AWS Systems Manager Parameter Store
+
+## API Rate Limits and Quotas
+
+### TMDb API
+- 40 requests per 10 seconds
+- 1000 requests per day (free tier)
+
+### OpenAI API
+- Varies by model and subscription
+- Monitor usage in OpenAI dashboard
+
+### Google Cloud APIs
+- Speech-to-Text: 60 minutes free per month
+- Vision API: 1000 requests free per month
+
+## Error Handling
+
+All API routes include comprehensive error handling:
+
+\`\`\`javascript
+try {
+  // API logic
+  return NextResponse.json({ success: true, data })
+} catch (error) {
+  console.error('API Error:', error)
+  return NextResponse.json(
+    { success: false, error: 'Internal server error' },
+    { status: 500 }
+  )
+}
+\`\`\`
+
+## Security Considerations
+
+1. **API Key Security**: Never expose API keys in client-side code
+2. **Rate Limiting**: Implement rate limiting for public endpoints
+3. **Input Validation**: Validate all user inputs
+4. **CORS**: Configure CORS properly for production
+5. **Authentication**: Implement proper JWT authentication
+
+## Monitoring and Analytics
+
+### Recommended Tools
+- Vercel Analytics (for deployment metrics)
+- Sentry (for error tracking)
+- LogRocket (for user session recording)
+- Google Analytics (for user behavior)
+
+### Custom Logging
+
+\`\`\`javascript
+// Add to API routes for monitoring
+console.log(`[${new Date().toISOString()}] ${method} ${url} - ${status}`)
+\`\`\`
+
+## Troubleshooting
+
+### Common Issues
+
+1. **CORS Errors**: Ensure proper CORS configuration
+2. **API Key Issues**: Verify keys are correctly set and have proper permissions
+3. **Rate Limiting**: Implement caching and request throttling
+4. **File Upload Issues**: Check AWS S3 permissions and bucket configuration
+
+### Debug Mode
+
+Enable debug logging by setting:
+
+\`\`\`env
+NODE_ENV=development
+DEBUG=true
+\`\`\`
+
+## Support and Resources
+
+- [TMDb API Documentation](https://developers.themoviedb.org/3)
+- [OpenAI API Documentation](https://platform.openai.com/docs)
+- [Google Cloud API Documentation](https://cloud.google.com/docs)
+- [Next.js API Routes Documentation](https://nextjs.org/docs/api-routes/introduction)
+
+For additional support, please refer to the project documentation or create an issue in the GitHub repository.
