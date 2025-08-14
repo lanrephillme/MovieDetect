@@ -230,82 +230,25 @@ export function MovieDetectHero() {
           )}
 
           {/* Gradient Overlays */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/60" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
         </div>
 
         {/* Content */}
-        <div className="relative z-10 h-full flex flex-col justify-between">
-          {/* Main Content */}
-          <div className="flex-1 flex items-center">
-            <div className="container mx-auto px-6 lg:px-8">
-              <div className="max-w-2xl">
-                {/* Movie Info */}
-                <div className="mb-8">
-                  <div className="flex items-center space-x-4 mb-4">
-                    <Badge className="bg-red-600 text-white px-3 py-1">Featured</Badge>
-                    <span className="text-gray-300">{currentMovie.year}</span>
-                    <span className="text-gray-300">•</span>
-                    <span className="text-gray-300">
-                      {Math.floor(currentMovie.duration / 60)}h {currentMovie.duration % 60}m
-                    </span>
-                  </div>
+        <div className="relative z-10 h-full flex flex-col">
+          {/* Center Search Section */}
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center max-w-4xl mx-auto px-6">
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+                Find Any Movie with AI
+              </h1>
+              <p className="text-xl md:text-2xl text-gray-200 mb-12 max-w-3xl mx-auto leading-relaxed">
+                Describe scenes, upload images, hum soundtracks, or record video clips. Our advanced AI delivers precise
+                results instantly.
+              </p>
 
-                  <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight">{currentMovie.title}</h1>
-
-                  <div className="flex items-center space-x-4 mb-6">
-                    <div className="flex items-center space-x-1">
-                      <span className="text-yellow-400 text-xl">★</span>
-                      <span className="text-white font-semibold text-lg">{currentMovie.rating}</span>
-                    </div>
-                    <div className="flex space-x-2">
-                      {currentMovie.genre.slice(0, 3).map((g) => (
-                        <Badge key={g} variant="outline" className="border-gray-400 text-gray-300">
-                          {g}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  <p className="text-gray-200 text-lg lg:text-xl leading-relaxed mb-8 max-w-xl">
-                    {currentMovie.synopsis}
-                  </p>
-
-                  {/* Action Buttons */}
-                  <div className="flex items-center space-x-4">
-                    <Button
-                      size="lg"
-                      className="bg-white text-black hover:bg-gray-200 px-8 py-3 text-lg font-semibold"
-                      onClick={handlePlayPause}
-                    >
-                      <Play className="w-6 h-6 mr-2" />
-                      {isVideoPlaying ? "Pause" : "Play"} Trailer
-                    </Button>
-
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      className="border-white/50 text-white hover:bg-white/20 bg-black/30 backdrop-blur-sm px-8 py-3 text-lg"
-                      onClick={handleMuteToggle}
-                    >
-                      {isMuted ? <VolumeX className="w-6 h-6 mr-2" /> : <Volume2 className="w-6 h-6 mr-2" />}
-                      {isMuted ? "Unmute" : "Mute"}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Search Methods Grid */}
-          <div className="pb-12">
-            <div className="container mx-auto px-6 lg:px-8">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-white mb-4">Discover Movies Your Way</h2>
-                <p className="text-gray-300 text-lg">Use AI-powered search to find your next favorite movie</p>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 max-w-6xl mx-auto">
+              {/* Search Methods Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 max-w-5xl mx-auto">
                 {searchMethods.map((method) => {
                   const IconComponent = method.icon
                   return (
@@ -327,19 +270,83 @@ export function MovieDetectHero() {
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Movie Indicators */}
-        <div className="absolute bottom-4 right-6 flex space-x-2">
-          {featuredMovies.map((movie) => (
-            <button
-              key={movie.id}
-              onClick={() => setCurrentMovie(movie)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                currentMovie.id === movie.id ? "bg-white" : "bg-white/40 hover:bg-white/60"
-              }`}
-            />
-          ))}
+          {/* Bottom Left Movie Info */}
+          <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-8">
+            <div className="container mx-auto">
+              <div className="max-w-2xl">
+                {/* Movie Badge */}
+                <div className="flex items-center space-x-4 mb-4">
+                  <Badge className="bg-red-600 text-white px-3 py-1">Featured</Badge>
+                  <span className="text-gray-300">{currentMovie.year}</span>
+                  <span className="text-gray-300">•</span>
+                  <span className="text-gray-300">
+                    {Math.floor(currentMovie.duration / 60)}h {currentMovie.duration % 60}m
+                  </span>
+                  <div className="flex items-center space-x-1">
+                    <span className="text-yellow-400">★</span>
+                    <span className="text-white font-semibold">{currentMovie.rating}</span>
+                  </div>
+                </div>
+
+                {/* Movie Title */}
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
+                  {currentMovie.title}
+                </h2>
+
+                {/* Genres */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {currentMovie.genre.map((genre) => (
+                    <Badge
+                      key={genre}
+                      variant="outline"
+                      className="border-gray-400 text-gray-300 bg-black/30 backdrop-blur-sm"
+                    >
+                      {genre}
+                    </Badge>
+                  ))}
+                </div>
+
+                {/* Synopsis */}
+                <p className="text-gray-200 text-lg leading-relaxed mb-6 max-w-xl">{currentMovie.synopsis}</p>
+
+                {/* Action Buttons */}
+                <div className="flex items-center space-x-4">
+                  <Button
+                    size="lg"
+                    className="bg-white text-black hover:bg-gray-200 px-8 py-3 text-lg font-semibold"
+                    onClick={handlePlayPause}
+                  >
+                    <Play className="w-6 h-6 mr-2" />
+                    {isVideoPlaying ? "Pause" : "Play"} Trailer
+                  </Button>
+
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-white/50 text-white hover:bg-white/20 bg-black/30 backdrop-blur-sm px-8 py-3 text-lg"
+                    onClick={handleMuteToggle}
+                  >
+                    {isMuted ? <VolumeX className="w-6 h-6 mr-2" /> : <Volume2 className="w-6 h-6 mr-2" />}
+                    {isMuted ? "Unmute" : "Mute"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Movie Indicators */}
+          <div className="absolute bottom-6 right-6 flex space-x-2">
+            {featuredMovies.map((movie) => (
+              <button
+                key={movie.id}
+                onClick={() => setCurrentMovie(movie)}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  currentMovie.id === movie.id ? "bg-white" : "bg-white/40 hover:bg-white/60"
+                }`}
+              />
+            ))}
+          </div>
         </div>
       </div>
 

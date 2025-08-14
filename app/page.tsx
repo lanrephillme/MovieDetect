@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { Header } from "@/components/header"
 import { MovieDetectHero } from "@/components/movie-detect-hero"
 import { MovieCarousels } from "@/components/movie-carousels"
 import { HowItWorks } from "@/components/how-it-works"
@@ -22,7 +23,8 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-black">
-      <MovieDetectHero onSearchClick={handleSearchClick} />
+      <Header />
+      <MovieDetectHero />
       <MovieCarousels />
       <HowItWorks />
       <EmailCapture />
