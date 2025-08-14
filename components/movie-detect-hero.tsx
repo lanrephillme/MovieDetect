@@ -29,6 +29,17 @@ interface SearchResult {
   }>
 }
 
+interface HeroMovie {
+  id: number
+  title: string
+  year: number
+  genre: string[]
+  rating: number
+  synopsis: string
+  backdrop: string
+  trailer: string
+}
+
 export function MovieDetectHero() {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(true)
@@ -42,6 +53,8 @@ export function MovieDetectHero() {
   const [showSearchOverlay, setShowSearchOverlay] = useState(true)
   const [errorMessage, setErrorMessage] = useState("")
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null)
+  const [currentHeroMovie, setCurrentHeroMovie] = useState<HeroMovie | null>(null)
+  const [showSearchControls, setShowSearchControls] = useState(true)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -62,14 +75,45 @@ export function MovieDetectHero() {
     { id: "face", label: "Face", icon: User, description: "Use camera to find movies by actor's face" },
   ]
 
+  // Featured hero movies
+  const heroMovies: HeroMovie[] = [
+    {
+      id: 1,
+      title: "Blade Runner 2049",
+      year: 2017,
+      genre: ["Sci-Fi", "Thriller", "Drama"],
+      rating: 8.2,
+      synopsis:
+        "A young blade runner's discovery of a long-buried secret leads him to track down former blade runner Rick Deckard, who's been missing for thirty years.",
+      backdrop: "/blade-runner-2049-cityscape.png",
+      trailer: "/placeholder-trailer.mp4",
+    },
+    {
+      id: 2,
+      title: "Dune: Part Two",
+      year: 2024,
+      genre: ["Sci-Fi", "Adventure", "Drama"],
+      rating: 8.9,
+      synopsis:
+        "Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family.",
+      backdrop: "/dune-part-two-poster.png",
+      trailer: "/placeholder-trailer.mp4",
+    },
+  ]
+
   useEffect(() => {
+    // Set initial hero movie
+    setCurrentHeroMovie(heroMovies[0])
+
     // Auto-play video after 3 seconds
     const timer = setTimeout(() => {
-      if (videoRef.current) {
+      if (videoRef.current && !selectedResult) {
         videoRef.current
           .play()
           .then(() => {
             setIsVideoPlaying(true)
+            // Fade out search controls when video starts playing
+            setShowSearchControls(false)
           })
           .catch((error) => {
             console.log("Hero video autoplay failed:", error)
@@ -78,6 +122,37 @@ export function MovieDetectHero() {
     }, 3000)
 
     return () => clearTimeout(timer)
+  }, [])
+
+  // Handle video play/pause state changes
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    const handlePlay = () => {
+      setIsVideoPlaying(true)
+      setShowSearchControls(false)
+    }
+
+    const handlePause = () => {
+      setIsVideoPlaying(false)
+      setShowSearchControls(true)
+    }
+
+    const handleEnded = () => {
+      setIsVideoPlaying(false)
+      setShowSearchControls(true)
+    }
+
+    video.addEventListener("play", handlePlay)
+    video.addEventListener("pause", handlePause)
+    video.addEventListener("ended", handleEnded)
+
+    return () => {
+      video.removeEventListener("play", handlePlay)
+      video.removeEventListener("pause", handlePause)
+      video.removeEventListener("ended", handleEnded)
+    }
   }, [])
 
   // Cleanup camera stream on unmount
@@ -93,16 +168,10 @@ export function MovieDetectHero() {
     if (videoRef.current) {
       if (isVideoPlaying) {
         videoRef.current.pause()
-        setIsVideoPlaying(false)
       } else {
-        videoRef.current
-          .play()
-          .then(() => {
-            setIsVideoPlaying(true)
-          })
-          .catch((error) => {
-            console.log("Hero video play failed:", error)
-          })
+        videoRef.current.play().catch((error) => {
+          console.log("Hero video play failed:", error)
+        })
       }
     }
   }
@@ -131,14 +200,12 @@ export function MovieDetectHero() {
         const audioFile = new File([audioBlob], "voice-search.wav", { type: "audio/wav" })
         setUploadedFile(audioFile)
         performSearch()
-        // Stop all tracks
         stream.getTracks().forEach((track) => track.stop())
       }
 
       mediaRecorder.start()
       setIsRecording(true)
 
-      // Auto-stop after 10 seconds
       setTimeout(() => {
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
           mediaRecorderRef.current.stop()
@@ -171,7 +238,6 @@ export function MovieDetectHero() {
     try {
       setErrorMessage("")
 
-      // Check if getUserMedia is supported
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error("Camera access is not supported in this browser")
       }
@@ -191,7 +257,6 @@ export function MovieDetectHero() {
         cameraVideoRef.current.play()
       }
 
-      // For demo purposes, we'll simulate capturing after 3 seconds
       setTimeout(() => {
         captureFromCamera()
       }, 3000)
@@ -214,7 +279,6 @@ export function MovieDetectHero() {
 
       setErrorMessage(errorMsg)
 
-      // Offer file upload as fallback
       setTimeout(() => {
         if (fileInputRef.current) {
           fileInputRef.current.click()
@@ -225,7 +289,6 @@ export function MovieDetectHero() {
 
   const captureFromCamera = () => {
     if (cameraVideoRef.current && cameraStream) {
-      // Create canvas to capture frame
       const canvas = document.createElement("canvas")
       const context = canvas.getContext("2d")
 
@@ -234,7 +297,6 @@ export function MovieDetectHero() {
         canvas.height = cameraVideoRef.current.videoHeight
         context.drawImage(cameraVideoRef.current, 0, 0)
 
-        // Convert to blob and create file
         canvas.toBlob(
           (blob) => {
             if (blob) {
@@ -248,7 +310,6 @@ export function MovieDetectHero() {
         )
       }
 
-      // Stop camera stream
       cameraStream.getTracks().forEach((track) => track.stop())
       setCameraStream(null)
     }
@@ -262,10 +323,8 @@ export function MovieDetectHero() {
     setErrorMessage("")
 
     try {
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 2000))
 
-      // Mock search results
       const mockResults: SearchResult[] = [
         {
           id: 1,
@@ -350,10 +409,21 @@ export function MovieDetectHero() {
   }
 
   const currentMethod = searchMethods.find((m) => m.id === activeSearchMethod)
+  const displayMovie = selectedResult
+    ? {
+        title: selectedResult.title,
+        year: selectedResult.year,
+        genre: selectedResult.genre,
+        rating: selectedResult.rating,
+        synopsis: selectedResult.synopsis,
+        backdrop: selectedResult.backdrop,
+        trailer: selectedResult.trailer,
+      }
+    : currentHeroMovie
 
   return (
     <section className="relative h-screen overflow-hidden">
-      {/* Background Video */}
+      {/* Background Video/Image */}
       <div className="absolute inset-0">
         <video
           ref={videoRef}
@@ -361,19 +431,19 @@ export function MovieDetectHero() {
           muted={isMuted}
           loop
           playsInline
-          poster={selectedResult?.backdrop || "/blade-runner-2049-cityscape.png"}
+          poster={displayMovie?.backdrop || "/blade-runner-2049-cityscape.png"}
           onError={() => {
             console.log("Hero video failed to load, using fallback image")
             setIsVideoPlaying(false)
           }}
         >
-          <source src={selectedResult?.trailer || "/placeholder-trailer.mp4"} type="video/mp4" />
+          <source src={displayMovie?.trailer || "/placeholder-trailer.mp4"} type="video/mp4" />
         </video>
 
         {/* Fallback background image */}
         {!isVideoPlaying && (
           <img
-            src={selectedResult?.backdrop || "/blade-runner-2049-cityscape.png"}
+            src={displayMovie?.backdrop || "/blade-runner-2049-cityscape.png"}
             alt="Hero Background"
             className="w-full h-full object-cover"
             onError={(e) => {
@@ -386,6 +456,8 @@ export function MovieDetectHero() {
         {/* Gradient Overlays */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        {/* Bottom gradient for carousel flush */}
+        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-transparent via-transparent to-transparent" />
       </div>
 
       {/* Video Controls */}
@@ -408,29 +480,63 @@ export function MovieDetectHero() {
         </Button>
       </div>
 
+      {/* Movie Info Overlay - Apple TV Style */}
+      {displayMovie && !showSearchOverlay && (
+        <div className="absolute bottom-32 left-0 right-0 z-10">
+          <div className="container mx-auto px-6 lg:px-8">
+            <div className="max-w-4xl">
+              <div
+                className={`transition-all duration-1000 ease-in-out ${showSearchControls ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+              >
+                <h1 className="text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">{displayMovie.title}</h1>
+                <div className="flex items-center space-x-4 mb-4">
+                  <span className="text-gray-300 text-lg">{displayMovie.year}</span>
+                  <div className="flex items-center space-x-1">
+                    <span className="text-yellow-400">★</span>
+                    <span className="text-white font-medium text-lg">{displayMovie.rating}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {displayMovie.genre.map((g) => (
+                      <Badge key={g} variant="outline" className="border-gray-400 text-gray-300">
+                        {g}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                <p className="text-gray-200 text-lg leading-relaxed max-w-2xl">{displayMovie.synopsis}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Content */}
       <div className="relative z-10 h-full flex items-center">
         <div className="container mx-auto px-6 lg:px-8">
-          <div className="max-w-4xl">
+          <div className="max-w-4xl mx-auto">
             {/* Search Overlay */}
             {showSearchOverlay && (
-              <div className="transition-all duration-1000 ease-in-out">
-                <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-                  Find Any Movie
-                  <br />
-                  <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-                    Using AI
-                  </span>
-                </h1>
+              <div
+                className={`transition-all duration-1000 ease-in-out ${showSearchControls ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+              >
+                <div className="text-center mb-8">
+                  <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+                    Find Any Movie
+                    <br />
+                    <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                      Using AI
+                    </span>
+                  </h1>
 
-                <p className="text-xl lg:text-2xl text-gray-200 mb-8 max-w-2xl leading-relaxed">
-                  Revolutionary AI-powered movie discovery. Search by voice, image, audio, video, or describe what you
-                  remember.
-                </p>
+                  <p className="text-xl lg:text-2xl text-gray-200 mb-8 max-w-2xl mx-auto leading-relaxed">
+                    Revolutionary AI-powered movie discovery. Search by voice, image, audio, video, or describe what you
+                    remember.
+                  </p>
+                </div>
 
                 {/* Error Message */}
                 {errorMessage && (
-                  <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4 mb-6 backdrop-blur-sm">
+                  <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4 mb-6 backdrop-blur-sm max-w-2xl mx-auto">
                     <div className="flex items-center space-x-2">
                       <AlertCircle className="w-5 h-5 text-red-400" />
                       <p className="text-red-200">{errorMessage}</p>
@@ -438,8 +544,8 @@ export function MovieDetectHero() {
                   </div>
                 )}
 
-                {/* Search Method Tabs */}
-                <div className="flex flex-wrap gap-2 mb-6">
+                {/* Centered Search Method Tabs */}
+                <div className="flex flex-wrap justify-center gap-2 mb-6">
                   {searchMethods.map((method) => (
                     <button
                       key={method.id}
@@ -459,8 +565,8 @@ export function MovieDetectHero() {
                   ))}
                 </div>
 
-                {/* Search Input Area */}
-                <div className="bg-black/20 backdrop-blur-md rounded-2xl p-6 mb-6">
+                {/* Centered Search Input Area */}
+                <div className="bg-black/20 backdrop-blur-md rounded-2xl p-6 mb-6 max-w-2xl mx-auto">
                   {activeSearchMethod === "text" && (
                     <Input
                       placeholder={currentMethod?.description}
@@ -490,7 +596,7 @@ export function MovieDetectHero() {
                     </div>
                   )}
 
-                  {/* Big Round Search Button */}
+                  {/* Centered Big Round Search Button */}
                   <div className="flex justify-center mt-6">
                     <button
                       onClick={handleSearchAction}
@@ -510,32 +616,16 @@ export function MovieDetectHero() {
 
             {/* Search Results */}
             {selectedResult && !showSearchOverlay && (
-              <div className="transition-all duration-1000 ease-in-out">
+              <div
+                className={`transition-all duration-1000 ease-in-out text-center ${showSearchControls ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+              >
                 <div className="mb-6">
                   <Badge className="bg-green-600 text-white mb-4">{selectedResult.confidence}% Match</Badge>
-                  <h1 className="text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">
-                    {selectedResult.title}
-                  </h1>
-                  <div className="flex items-center space-x-4 mb-4">
-                    <span className="text-gray-300 text-lg">{selectedResult.year}</span>
-                    <div className="flex items-center space-x-1">
-                      <span className="text-yellow-400">★</span>
-                      <span className="text-white font-medium text-lg">{selectedResult.rating}</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedResult.genre.map((g) => (
-                        <Badge key={g} variant="outline" className="border-gray-400 text-gray-300">
-                          {g}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-gray-200 text-lg leading-relaxed mb-6 max-w-2xl">{selectedResult.synopsis}</p>
                   <p className="text-blue-400 text-sm mb-6">{selectedResult.matchReason}</p>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex items-center space-x-4 mb-8">
+                <div className="flex items-center justify-center space-x-4 mb-8">
                   <Button size="lg" className="bg-white text-black hover:bg-gray-200 px-8 py-3 text-lg font-semibold">
                     <Play className="w-6 h-6 mr-2" />
                     Play
@@ -562,7 +652,7 @@ export function MovieDetectHero() {
                 </div>
 
                 {/* Streaming Platforms */}
-                <div className="flex flex-wrap gap-3 mb-8">
+                <div className="flex flex-wrap justify-center gap-3 mb-8">
                   {selectedResult.streamingPlatforms.map((platform, index) => (
                     <Button
                       key={index}
@@ -606,9 +696,6 @@ export function MovieDetectHero() {
         onChange={handleFileUpload}
         className="hidden"
       />
-
-      {/* Bottom Fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent" />
     </section>
   )
 }
