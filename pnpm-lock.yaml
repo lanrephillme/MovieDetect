@@ -114,7 +114,7 @@ importers:
         specifier: ^10.16.0
         version: 10.16.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       geist:
-        specifier: latest
+        specifier: ^1.0.0
         version: 1.4.2(next@15.2.4(@babel/core@7.28.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))
       jsonwebtoken:
         specifier: ^9.0.2
@@ -150,7 +150,7 @@ importers:
         specifier: ^7.47.0
         version: 7.60.0(react@19.0.0)
       react-hot-toast:
-        specifier: latest
+        specifier: ^2.4.1
         version: 2.5.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       redis:
         specifier: ^4.6.0

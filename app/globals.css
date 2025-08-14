@@ -3,107 +3,26 @@
 @tailwind utilities;
 
 :root {
-  --primary-bg: #0b0e17;
+  --background: #0b0e17;
+  --foreground: #ffffff;
+  --card: #1f2937;
+  --card-foreground: #ffffff;
+  --popover: #1f2937;
+  --popover-foreground: #ffffff;
+  --primary: #00e6e6;
+  --primary-foreground: #0b0e17;
+  --secondary: #1f2937;
+  --secondary-foreground: #ffffff;
+  --muted: #1f2937;
+  --muted-foreground: #b3b3b3;
   --accent: #00e6e6;
-  --secondary-accent: #1f2937;
-  --text-primary: #ffffff;
-  --text-secondary: #b3b3b3;
-  --hover-accent: #00cccc;
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-
-  .line-clamp-1 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 1;
-  }
-
-  .line-clamp-2 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-
-  .line-clamp-3 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-  }
-}
-
-@layer base {
-  :root {
-    --background: 11 14 23;
-    --foreground: 255 255 255;
-    --card: 31 41 55;
-    --card-foreground: 255 255 255;
-    --popover: 11 14 23;
-    --popover-foreground: 255 255 255;
-    --primary: 0 230 230;
-    --primary-foreground: 11 14 23;
-    --secondary: 31 41 55;
-    --secondary-foreground: 255 255 255;
-    --muted: 31 41 55;
-    --muted-foreground: 179 179 179;
-    --accent: 0 230 230;
-    --accent-foreground: 11 14 23;
-    --destructive: 239 68 68;
-    --destructive-foreground: 255 255 255;
-    --border: 31 41 55;
-    --input: 31 41 55;
-    --ring: 0 230 230;
-    --radius: 0.5rem;
-  }
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
+  --accent-foreground: #0b0e17;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: #ffffff;
+  --border: #1f2937;
+  --input: #1f2937;
+  --ring: #00e6e6;
+  --radius: 0.5rem;
 }
 
 * {
@@ -111,59 +30,101 @@
 }
 
 body {
-  color: var(--text-primary);
-  background: var(--primary-bg);
+  background-color: var(--background);
+  color: var(--foreground);
   font-feature-settings: "rlig" 1, "calt" 1;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #00e6e6;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00cccc;
+}
+
+/* Smooth transitions */
+* {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Glass effect */
+.glass {
+  background: rgba(31, 41, 55, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 230, 230, 0.1);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #00e6e6, #ffffff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Movie card hover effects */
+.movie-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.movie-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 20px 40px rgba(0, 230, 230, 0.2);
+}
+
+/* Button animations */
+.btn-primary {
+  background: linear-gradient(135deg, #00e6e6, #00cccc);
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #00cccc, #00b3b3);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 230, 230, 0.3);
+}
+
+/* Loading animations */
+@keyframes pulse {
+  0%,
+  100% {
     opacity: 1;
-    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.5;
   }
 }
 
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.loading {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-.animate-fadeInUp {
-  animation: fadeInUp 0.6s ease-out;
+/* Video overlay */
+.video-overlay {
+  background: linear-gradient(to bottom, transparent 0%, rgba(11, 14, 23, 0.3) 50%, rgba(11, 14, 23, 0.8) 100%);
 }
 
-.animate-fadeInDown {
-  animation: fadeInDown 0.6s ease-out;
+/* Search overlay */
+.search-overlay {
+  background: rgba(11, 14, 23, 0.95);
+  backdrop-filter: blur(20px);
 }
 
-/* Responsive utilities */
-@media (max-width: 640px) {
-  .container {
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-}
-
+/* Mobile responsive */
 @media (max-width: 768px) {
-  .text-5xl {
-    font-size: 2.5rem;
-  }
-
-  .text-7xl {
-    font-size: 3.5rem;
+  .movie-card:hover {
+    transform: none;
   }
 }
-\
-</
-merged_code>
-\

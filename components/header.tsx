@@ -4,14 +4,28 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Search, Menu, X, User } from "lucide-react"
+import { Search, Menu, X, User, Settings, Bell } from "lucide-react"
+import Image from "next/image"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isSignedIn, setIsSignedIn] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false) // This would come from auth context
   const router = useRouter()
 
-  const navigationItems = [
+  const handleLogin = () => {
+    router.push("/login")
+  }
+
+  const handleSignup = () => {
+    router.push("/signup")
+  }
+
+  const handleSearch = () => {
+    // This would trigger the search modal
+    console.log("Open search modal")
+  }
+
+  const navigation = [
     { name: "Home", href: "/" },
     { name: "Movies", href: "/movies" },
     { name: "TV Shows", href: "/tv-shows" },
@@ -19,44 +33,27 @@ export function Header() {
     { name: "Sports", href: "/sports" },
   ]
 
-  const handleSignIn = () => {
-    router.push("/login")
-  }
-
-  const handleGetStarted = () => {
-    router.push("/signup")
-  }
-
-  const handleSignOut = () => {
-    setIsSignedIn(false)
-    // Add sign out logic here
-  }
-
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
-      <div className="container mx-auto px-6 lg:px-8">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#0B0E17]/95 backdrop-blur-md border-b border-[#1F2937]">
+      <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo and Title */}
-          <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
-            <img
-              src="/placeholder-logo.svg"
-              alt="MovieDetect"
-              className="w-8 h-8"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement
-                target.src = "/placeholder.svg?height=32&width=32"
-              }}
-            />
-            <span className="text-white font-bold text-xl">MovieDetect</span>
+          {/* Logo and Brand */}
+          <Link href="/" className="flex items-center gap-3">
+            <div className="relative w-8 h-8">
+              <Image src="/placeholder-logo.svg" alt="MovieDetect Logo" fill className="object-contain" />
+            </div>
+            <span className="text-xl font-bold text-white">
+              Movie<span className="text-[#00E6E6]">Detect</span>
+            </span>
           </Link>
 
-          {/* Centered Navigation */}
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            {navigationItems.map((item) => (
+            {navigation.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-gray-300 hover:text-[#00E6E6] transition-colors duration-200 font-medium"
+                className="text-[#B3B3B3] hover:text-[#00E6E6] transition-colors duration-200 font-medium"
               >
                 {item.name}
               </Link>
@@ -64,121 +61,91 @@ export function Header() {
           </nav>
 
           {/* Right Side Actions */}
-          <div className="flex items-center space-x-4">
-            {!isSignedIn ? (
-              <>
+          <div className="flex items-center gap-4">
+            {/* Search Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSearch}
+              className="text-[#B3B3B3] hover:text-[#00E6E6] hover:bg-[#1F2937]"
+            >
+              <Search className="w-5 h-5" />
+            </Button>
+
+            {/* User Actions */}
+            {isLoggedIn ? (
+              <div className="hidden md:flex items-center gap-2">
+                <Button variant="ghost" size="sm" className="text-[#B3B3B3] hover:text-[#00E6E6] hover:bg-[#1F2937]">
+                  <Bell className="w-5 h-5" />
+                </Button>
+                <Button variant="ghost" size="sm" className="text-[#B3B3B3] hover:text-[#00E6E6] hover:bg-[#1F2937]">
+                  <Settings className="w-5 h-5" />
+                </Button>
+                <Button variant="ghost" size="sm" className="text-[#B3B3B3] hover:text-[#00E6E6] hover:bg-[#1F2937]">
+                  <User className="w-5 h-5" />
+                </Button>
+              </div>
+            ) : (
+              <div className="hidden md:flex items-center gap-3">
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className="text-gray-300 hover:text-white hover:bg-white/10"
-                  onClick={handleSignIn}
+                  onClick={handleLogin}
+                  className="text-[#B3B3B3] hover:text-[#00E6E6] hover:bg-[#1F2937]"
                 >
                   Sign In
                 </Button>
-                <Button
-                  size="sm"
-                  className="bg-[#00E6E6] text-[#0B0E17] hover:bg-[#00CCCC] font-medium px-6"
-                  onClick={handleGetStarted}
-                >
+                <Button onClick={handleSignup} className="bg-[#00E6E6] text-[#0B0E17] hover:bg-[#00CCCC] font-semibold">
                   Get Started
                 </Button>
-              </>
-            ) : (
-              <>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-gray-300 hover:text-white hover:bg-white/10 rounded-full"
-                >
-                  <Search className="w-5 h-5" />
-                </Button>
-                <div className="relative group">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-gray-300 hover:text-white hover:bg-white/10 rounded-full"
-                  >
-                    <User className="w-5 h-5" />
-                  </Button>
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-gray-900 rounded-lg shadow-lg border border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                    <div className="p-2">
-                      <Link
-                        href="/profile"
-                        className="block px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded"
-                      >
-                        Profile
-                      </Link>
-                      <Link
-                        href="/watchlist"
-                        className="block px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded"
-                      >
-                        My Watchlist
-                      </Link>
-                      <Link
-                        href="/settings"
-                        className="block px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded"
-                      >
-                        Settings
-                      </Link>
-                      <hr className="my-2 border-gray-700" />
-                      <button
-                        onClick={handleSignOut}
-                        className="block w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded"
-                      >
-                        Sign Out
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </>
+              </div>
             )}
 
             {/* Mobile Menu Button */}
             <Button
               variant="ghost"
-              size="icon"
-              className="md:hidden text-gray-300 hover:text-white hover:bg-white/10"
+              size="sm"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden text-[#B3B3B3] hover:text-[#00E6E6] hover:bg-[#1F2937]"
             >
               {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-white/10">
-            <nav className="flex flex-col space-y-3">
-              {navigationItems.map((item) => (
+          <div className="md:hidden border-t border-[#1F2937] py-4">
+            <nav className="flex flex-col space-y-4">
+              {navigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="text-gray-300 hover:text-[#00E6E6] transition-colors duration-200 font-medium py-2"
+                  className="text-[#B3B3B3] hover:text-[#00E6E6] transition-colors duration-200 font-medium px-2 py-1"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}
                 </Link>
               ))}
-              {!isSignedIn && (
-                <div className="flex flex-col space-y-2 pt-4 border-t border-white/10">
+
+              {/* Mobile Auth Buttons */}
+              {!isLoggedIn && (
+                <div className="flex flex-col gap-3 pt-4 border-t border-[#1F2937]">
                   <Button
                     variant="ghost"
-                    size="sm"
-                    className="text-gray-300 hover:text-white hover:bg-white/10 justify-start"
                     onClick={() => {
-                      handleSignIn()
+                      handleLogin()
                       setIsMenuOpen(false)
                     }}
+                    className="text-[#B3B3B3] hover:text-[#00E6E6] hover:bg-[#1F2937] justify-start"
                   >
                     Sign In
                   </Button>
                   <Button
-                    size="sm"
-                    className="bg-[#00E6E6] text-[#0B0E17] hover:bg-[#00CCCC] font-medium"
                     onClick={() => {
-                      handleGetStarted()
+                      handleSignup()
                       setIsMenuOpen(false)
                     }}
+                    className="bg-[#00E6E6] text-[#0B0E17] hover:bg-[#00CCCC] font-semibold justify-start"
                   >
                     Get Started
                   </Button>

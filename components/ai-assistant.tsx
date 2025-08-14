@@ -3,31 +3,44 @@
 import type React from "react"
 
 import { useState, useEffect, useRef } from "react"
-import { MessageCircle, X, Send, Bot, User, Minimize2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { MessageCircle, Send, X, Minimize2, Maximize2, Bot, User } from "lucide-react"
 
 interface Message {
-  id: number
+  id: string
   type: "user" | "assistant"
   content: string
   timestamp: Date
 }
 
+const aiResponses = [
+  "I can help you describe movies more effectively! Try being specific about genres, actors, or memorable scenes.",
+  "For better search results, mention visual elements like colors, settings, or distinctive costumes you remember.",
+  "If you remember a quote or dialogue, that's perfect for text search. Even partial quotes work great!",
+  "Describe the mood or atmosphere - was it dark and mysterious, bright and colorful, or action-packed?",
+  "Time period details help a lot - modern day, historical, futuristic, or a specific decade?",
+  "Character descriptions are valuable - their appearance, personality, or role in the story.",
+  "Think about the movie's theme - romance, revenge, coming-of-age, survival, or mystery?",
+  "Location details matter - was it set in a city, countryside, space, underwater, or fantasy world?",
+]
+
 export function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false)
+  const [isMinimized, setIsMinimized] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
+  const [message, setMessage] = useState("")
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: 1,
+      id: "1",
       type: "assistant",
       content:
-        "Hi! I'm VisionAI, your movie discovery assistant. I can help you describe movies better, suggest search terms, or improve your descriptions to find exactly what you're looking for. What movie are you trying to find?",
+        "Hi! I'm VisionAI, your movie search assistant. I help you find movies by improving your descriptions. What are you trying to remember?",
       timestamp: new Date(),
     },
   ])
-  const [inputMessage, setInputMessage] = useState("")
   const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const lastScrollY = useRef(0)
@@ -59,40 +72,62 @@ export function AIAssistant() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
+  const generateAIResponse = (userMessage: string): string => {
+    const lowerMessage = userMessage.toLowerCase()
+
+    if (lowerMessage.includes("genre") || lowerMessage.includes("type")) {
+      return "Great! Genres are super helpful. You can also mention sub-genres like 'psychological thriller' or 'romantic comedy' for more precise results."
+    }
+
+    if (lowerMessage.includes("actor") || lowerMessage.includes("actress") || lowerMessage.includes("star")) {
+      return "Perfect! Actor names are excellent search terms. Even if you're not sure of the exact name, describe their appearance or other movies they've been in."
+    }
+
+    if (lowerMessage.includes("scene") || lowerMessage.includes("part")) {
+      return "Scene descriptions work wonderfully! Try to include details like the setting, what characters were doing, or any memorable dialogue from that scene."
+    }
+
+    if (lowerMessage.includes("music") || lowerMessage.includes("song") || lowerMessage.includes("soundtrack")) {
+      return "Music is a great clue! You can use our audio search feature to hum or play the tune, or describe the style of music and when it played in the movie."
+    }
+
+    if (lowerMessage.includes("year") || lowerMessage.includes("old") || lowerMessage.includes("when")) {
+      return "Time period is very useful! Even if you're not sure of the exact year, mentioning the decade or era (like '90s action movie' or 'classic film') helps narrow it down."
+    }
+
+    // Return a random helpful response
+    return aiResponses[Math.floor(Math.random() * aiResponses.length)]
+  }
+
   const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return
+    if (!message.trim()) return
 
     const userMessage: Message = {
-      id: Date.now(),
+      id: Date.now().toString(),
       type: "user",
-      content: inputMessage,
+      content: message.trim(),
       timestamp: new Date(),
     }
 
     setMessages((prev) => [...prev, userMessage])
-    setInputMessage("")
+    setMessage("")
     setIsTyping(true)
 
-    // Simulate AI response
-    setTimeout(() => {
-      const responses = [
-        "That sounds like a sci-fi thriller! Try describing the visual effects or any memorable scenes. For example, 'futuristic cityscape with flying cars' or 'neon-lit streets in the rain' can help narrow it down.",
-        "Great description! You might want to add details about the time period, main character's appearance, or any distinctive props. This will help our AI search more accurately.",
-        "I can help you refine that search! Try mentioning the movie's mood or atmosphere - was it dark and gritty, colorful and vibrant, or mysterious and suspenseful?",
-        "Perfect! For better results, you could also mention any memorable quotes, specific locations, or unique visual elements you remember from the movie.",
-        "That's a good start! Consider adding information about the genre, decade it was made, or any famous actors you might recognize. Even partial details help!",
-      ]
+    // Simulate AI thinking time
+    setTimeout(
+      () => {
+        const aiResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          type: "assistant",
+          content: generateAIResponse(message),
+          timestamp: new Date(),
+        }
 
-      const assistantMessage: Message = {
-        id: Date.now() + 1,
-        type: "assistant",
-        content: responses[Math.floor(Math.random() * responses.length)],
-        timestamp: new Date(),
-      }
-
-      setMessages((prev) => [...prev, assistantMessage])
-      setIsTyping(false)
-    }, 1500)
+        setMessages((prev) => [...prev, aiResponse])
+        setIsTyping(false)
+      },
+      1000 + Math.random() * 1000,
+    )
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -102,132 +137,129 @@ export function AIAssistant() {
     }
   }
 
-  return (
-    <>
-      {/* Chat Button */}
-      <div
-        className={`fixed bottom-6 right-6 z-50 transition-all duration-300 ${
-          isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-16"
-        }`}
-      >
-        {!isOpen && (
-          <Button
-            onClick={() => setIsOpen(true)}
-            className="bg-[#00E6E6] hover:bg-[#00CCCC] text-[#0B0E17] rounded-full w-14 h-14 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
-          >
-            <MessageCircle className="w-6 h-6" />
-          </Button>
-        )}
-      </div>
+  if (!isVisible && !isOpen) return null
 
-      {/* Chat Window */}
-      {isOpen && (
-        <div
-          className={`fixed bottom-6 right-6 z-50 w-80 sm:w-96 h-96 bg-gray-900 rounded-lg shadow-2xl border border-gray-700 flex flex-col transition-all duration-300 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-16"
+  return (
+    <div
+      className={`fixed bottom-6 right-6 z-50 transition-all duration-300 ${
+        isVisible ? "translate-y-0 opacity-100" : "translate-y-16 opacity-0"
+      }`}
+    >
+      {!isOpen ? (
+        <Button
+          onClick={() => setIsOpen(true)}
+          className="bg-[#00E6E6] text-[#0B0E17] hover:bg-[#00CCCC] rounded-full w-14 h-14 shadow-lg hover:shadow-xl transition-all duration-300 animate-pulse"
+        >
+          <MessageCircle className="w-6 h-6" />
+        </Button>
+      ) : (
+        <Card
+          className={`w-80 md:w-96 bg-[#1F2937] border-[#00E6E6] shadow-2xl transition-all duration-300 ${
+            isMinimized ? "h-16" : "h-96"
           }`}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-700">
-            <div className="flex items-center space-x-3">
+          <CardHeader className="flex flex-row items-center justify-between p-4 border-b border-[#00E6E6]/20">
+            <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-[#00E6E6] rounded-full flex items-center justify-center">
-                <Bot className="w-5 h-5 text-[#0B0E17]" />
+                <Bot className="w-4 h-4 text-[#0B0E17]" />
               </div>
               <div>
-                <h3 className="text-white font-semibold">VisionAI</h3>
-                <p className="text-gray-400 text-xs">Movie Search Assistant</p>
+                <h3 className="font-semibold text-white">VisionAI</h3>
+                <p className="text-xs text-[#B3B3B3]">Movie Search Assistant</p>
               </div>
             </div>
-            <div className="flex space-x-1">
+            <div className="flex gap-1">
               <Button
                 variant="ghost"
-                size="icon"
-                onClick={() => setIsOpen(false)}
-                className="text-gray-400 hover:text-white hover:bg-gray-800 w-8 h-8"
+                size="sm"
+                onClick={() => setIsMinimized(!isMinimized)}
+                className="text-[#B3B3B3] hover:text-[#00E6E6] p-1 h-auto"
               >
-                <Minimize2 className="w-4 h-4" />
+                {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
               </Button>
               <Button
                 variant="ghost"
-                size="icon"
+                size="sm"
                 onClick={() => setIsOpen(false)}
-                className="text-gray-400 hover:text-white hover:bg-gray-800 w-8 h-8"
+                className="text-[#B3B3B3] hover:text-red-400 p-1 h-auto"
               >
                 <X className="w-4 h-4" />
               </Button>
             </div>
-          </div>
+          </CardHeader>
 
-          {/* Messages */}
-          <ScrollArea className="flex-1 p-4">
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div key={message.id} className={`flex ${message.type === "user" ? "justify-end" : "justify-start"}`}>
-                  <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
-                      message.type === "user" ? "bg-[#00E6E6] text-[#0B0E17]" : "bg-gray-800 text-white"
-                    }`}
-                  >
-                    <div className="flex items-start space-x-2">
-                      {message.type === "assistant" && <Bot className="w-4 h-4 mt-0.5 text-[#00E6E6] flex-shrink-0" />}
-                      {message.type === "user" && <User className="w-4 h-4 mt-0.5 text-[#0B0E17] flex-shrink-0" />}
-                      <p className="text-sm leading-relaxed">{message.content}</p>
+          {!isMinimized && (
+            <CardContent className="p-0 flex flex-col h-80">
+              <ScrollArea className="flex-1 p-4">
+                <div className="space-y-4">
+                  {messages.map((msg) => (
+                    <div key={msg.id} className={`flex gap-2 ${msg.type === "user" ? "justify-end" : "justify-start"}`}>
+                      {msg.type === "assistant" && (
+                        <div className="w-6 h-6 bg-[#00E6E6] rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                          <Bot className="w-3 h-3 text-[#0B0E17]" />
+                        </div>
+                      )}
+                      <div
+                        className={`max-w-[80%] p-3 rounded-lg text-sm ${
+                          msg.type === "user" ? "bg-[#00E6E6] text-[#0B0E17] ml-auto" : "bg-[#0B0E17] text-white"
+                        }`}
+                      >
+                        {msg.content}
+                      </div>
+                      {msg.type === "user" && (
+                        <div className="w-6 h-6 bg-[#B3B3B3] rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                          <User className="w-3 h-3 text-[#0B0E17]" />
+                        </div>
+                      )}
                     </div>
-                    <p className={`text-xs mt-2 ${message.type === "user" ? "text-[#0B0E17]/70" : "text-gray-400"}`}>
-                      {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                  ))}
 
-              {isTyping && (
-                <div className="flex justify-start">
-                  <div className="bg-gray-800 text-white rounded-lg p-3 max-w-[80%]">
-                    <div className="flex items-center space-x-2">
-                      <Bot className="w-4 h-4 text-[#00E6E6]" />
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div
-                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                          style={{ animationDelay: "0.1s" }}
-                        ></div>
-                        <div
-                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                          style={{ animationDelay: "0.2s" }}
-                        ></div>
+                  {isTyping && (
+                    <div className="flex gap-2 justify-start">
+                      <div className="w-6 h-6 bg-[#00E6E6] rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                        <Bot className="w-3 h-3 text-[#0B0E17]" />
+                      </div>
+                      <div className="bg-[#0B0E17] text-white p-3 rounded-lg text-sm">
+                        <div className="flex gap-1">
+                          <div className="w-2 h-2 bg-[#00E6E6] rounded-full animate-bounce"></div>
+                          <div
+                            className="w-2 h-2 bg-[#00E6E6] rounded-full animate-bounce"
+                            style={{ animationDelay: "0.1s" }}
+                          ></div>
+                          <div
+                            className="w-2 h-2 bg-[#00E6E6] rounded-full animate-bounce"
+                            style={{ animationDelay: "0.2s" }}
+                          ></div>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-          </ScrollArea>
+                <div ref={messagesEndRef} />
+              </ScrollArea>
 
-          {/* Input */}
-          <div className="p-4 border-t border-gray-700">
-            <div className="flex space-x-2">
-              <Input
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Describe what you remember..."
-                className="flex-1 bg-gray-800 border-gray-600 text-white placeholder-gray-400 focus:border-[#00E6E6]"
-              />
-              <Button
-                onClick={handleSendMessage}
-                disabled={!inputMessage.trim() || isTyping}
-                className="bg-[#00E6E6] hover:bg-[#00CCCC] text-[#0B0E17] px-3"
-              >
-                <Send className="w-4 h-4" />
-              </Button>
-            </div>
-            <p className="text-gray-500 text-xs mt-2">
-              Press Enter to send • VisionAI helps improve your movie descriptions
-            </p>
-          </div>
-        </div>
+              <div className="p-4 border-t border-[#00E6E6]/20">
+                <div className="flex gap-2">
+                  <Input
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Describe what you're looking for..."
+                    className="bg-[#0B0E17] border-[#00E6E6]/30 text-white placeholder:text-[#B3B3B3] focus:border-[#00E6E6]"
+                  />
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!message.trim() || isTyping}
+                    className="bg-[#00E6E6] text-[#0B0E17] hover:bg-[#00CCCC] px-3"
+                  >
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          )}
+        </Card>
       )}
-    </>
+    </div>
   )
 }
