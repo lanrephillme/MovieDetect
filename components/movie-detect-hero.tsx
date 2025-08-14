@@ -3,7 +3,21 @@
 import type React from "react"
 
 import { useState, useEffect, useRef } from "react"
-import { Search, Mic, Camera, Upload, Video, User, Play, Volume2, VolumeX, Loader2, AlertCircle } from "lucide-react"
+import {
+  Search,
+  Mic,
+  Camera,
+  Upload,
+  Video,
+  User,
+  Play,
+  Volume2,
+  VolumeX,
+  Loader2,
+  AlertCircle,
+  Plus,
+  Share,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -55,6 +69,7 @@ export function MovieDetectHero() {
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null)
   const [currentHeroMovie, setCurrentHeroMovie] = useState<HeroMovie | null>(null)
   const [showSearchControls, setShowSearchControls] = useState(true)
+  const [isInWatchlist, setIsInWatchlist] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -180,6 +195,31 @@ export function MovieDetectHero() {
     if (videoRef.current) {
       videoRef.current.muted = !isMuted
       setIsMuted(!isMuted)
+    }
+  }
+
+  const handlePlayMovie = () => {
+    // Implement play functionality
+    console.log("Playing movie:", displayMovie?.title)
+  }
+
+  const handleAddToWatchlist = () => {
+    setIsInWatchlist(!isInWatchlist)
+    // API call to update watchlist
+    console.log(isInWatchlist ? "Removed from watchlist" : "Added to watchlist")
+  }
+
+  const handleShareMovie = () => {
+    if (navigator.share && displayMovie) {
+      navigator.share({
+        title: displayMovie.title,
+        text: `Check out ${displayMovie.title} on MovieDetect!`,
+        url: window.location.href,
+      })
+    } else {
+      // Fallback to copy to clipboard
+      navigator.clipboard.writeText(window.location.href)
+      alert("Link copied to clipboard!")
     }
   }
 
@@ -488,7 +528,7 @@ export function MovieDetectHero() {
               <div
                 className={`transition-all duration-1000 ease-in-out ${showSearchControls ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
               >
-                <h1 className="text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">{displayMovie.title}</h1>
+                <h1 className="text-4xl lg:text-6xl font-bold text-white mb-4 leading-tight">{displayMovie.title}</h1>
                 <div className="flex items-center space-x-4 mb-4">
                   <span className="text-gray-300 text-lg">{displayMovie.year}</span>
                   <div className="flex items-center space-x-1">
@@ -503,7 +543,39 @@ export function MovieDetectHero() {
                     ))}
                   </div>
                 </div>
-                <p className="text-gray-200 text-lg leading-relaxed max-w-2xl">{displayMovie.synopsis}</p>
+                <p className="text-gray-200 text-lg leading-relaxed max-w-2xl mb-6">{displayMovie.synopsis}</p>
+
+                {/* Action Buttons */}
+                <div className="flex items-center space-x-4">
+                  <Button
+                    size="lg"
+                    className="bg-white text-black hover:bg-gray-200 px-8 py-3 text-lg font-semibold"
+                    onClick={handlePlayMovie}
+                  >
+                    <Play className="w-6 h-6 mr-2" />
+                    Play
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={handleAddToWatchlist}
+                    className={`border-white/50 hover:bg-white/20 bg-black/30 backdrop-blur-sm px-6 py-3 text-lg ${
+                      isInWatchlist ? "text-[#00E6E6] border-[#00E6E6]" : "text-white"
+                    }`}
+                  >
+                    <Plus className="w-6 h-6 mr-2" />
+                    {isInWatchlist ? "In My List" : "My List"}
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-white/50 text-white hover:bg-white/20 bg-black/30 backdrop-blur-sm px-6 py-3 text-lg"
+                    onClick={handleShareMovie}
+                  >
+                    <Share className="w-6 h-6 mr-2" />
+                    Share
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -512,7 +584,7 @@ export function MovieDetectHero() {
 
       {/* Content */}
       <div className="relative z-10 h-full flex items-center">
-        <div className="container mx-auto px-6 lg:px-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             {/* Search Overlay */}
             {showSearchOverlay && (
@@ -520,18 +592,28 @@ export function MovieDetectHero() {
                 className={`transition-all duration-1000 ease-in-out ${showSearchControls ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
               >
                 <div className="text-center mb-8">
-                  <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+                  <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight">
                     Find Any Movie
                     <br />
-                    <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-                      Using AI
-                    </span>
+                    <span style={{ color: "#00E6E6" }}>Using AI</span>
                   </h1>
 
-                  <p className="text-xl lg:text-2xl text-gray-200 mb-8 max-w-2xl mx-auto leading-relaxed">
+                  <p className="text-lg sm:text-xl lg:text-2xl text-gray-200 mb-6 max-w-2xl mx-auto leading-relaxed">
                     Revolutionary AI-powered movie discovery. Search by voice, image, audio, video, or describe what you
                     remember.
                   </p>
+
+                  {/* About MovieDetect */}
+                  <div className="bg-black/20 backdrop-blur-md rounded-xl p-6 mb-8 max-w-3xl mx-auto">
+                    <h3 className="text-xl font-semibold text-white mb-3">What is MovieDetect?</h3>
+                    <p className="text-gray-300 text-sm leading-relaxed">
+                      MovieDetect is an advanced AI-powered platform that revolutionizes how you discover movies and TV
+                      shows. Using cutting-edge artificial intelligence, we can identify any movie from just a
+                      description, image, audio clip, or even a hummed tune. Whether you remember a single scene, an
+                      actor's face, or just the feeling a movie gave you, our AI will help you find exactly what you're
+                      looking for.
+                    </p>
+                  </div>
                 </div>
 
                 {/* Error Message */}
@@ -555,8 +637,8 @@ export function MovieDetectHero() {
                       }}
                       className={`flex items-center space-x-2 px-3 py-2 rounded-full text-sm font-medium transition-all ${
                         activeSearchMethod === method.id
-                          ? "bg-white text-black"
-                          : "bg-black/30 text-white hover:bg-black/50 backdrop-blur-sm"
+                          ? "bg-[#00E6E6] text-[#0B0E17]"
+                          : "bg-black/30 text-white hover:bg-[#00CCCC]/20 backdrop-blur-sm"
                       }`}
                     >
                       <method.icon className="w-4 h-4" />
@@ -604,7 +686,7 @@ export function MovieDetectHero() {
                       className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 ${
                         isRecording
                           ? "bg-red-500/80 hover:bg-red-500 animate-pulse"
-                          : "bg-white/20 hover:bg-white/30 backdrop-blur-md hover:scale-110"
+                          : "bg-[#00E6E6]/20 hover:bg-[#00E6E6]/30 backdrop-blur-md hover:scale-110"
                       } disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
                       {getSearchButtonContent()}
@@ -626,16 +708,24 @@ export function MovieDetectHero() {
 
                 {/* Action Buttons */}
                 <div className="flex items-center justify-center space-x-4 mb-8">
-                  <Button size="lg" className="bg-white text-black hover:bg-gray-200 px-8 py-3 text-lg font-semibold">
+                  <Button
+                    size="lg"
+                    className="bg-white text-black hover:bg-gray-200 px-8 py-3 text-lg font-semibold"
+                    onClick={handlePlayMovie}
+                  >
                     <Play className="w-6 h-6 mr-2" />
                     Play
                   </Button>
                   <Button
                     size="lg"
                     variant="outline"
-                    className="border-white/50 text-white hover:bg-white/20 bg-black/30 backdrop-blur-sm px-6 py-3 text-lg"
+                    onClick={handleAddToWatchlist}
+                    className={`border-white/50 hover:bg-white/20 bg-black/30 backdrop-blur-sm px-6 py-3 text-lg ${
+                      isInWatchlist ? "text-[#00E6E6] border-[#00E6E6]" : "text-white"
+                    }`}
                   >
-                    + My List
+                    <Plus className="w-6 h-6 mr-2" />
+                    {isInWatchlist ? "In My List" : "My List"}
                   </Button>
                   <Button
                     size="lg"
