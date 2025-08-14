@@ -17,7 +17,7 @@
   --muted-foreground: #b3b3b3;
   --accent: #00e6e6;
   --accent-foreground: #0b0e17;
-  --destructive: 0 84% 60%;
+  --destructive: #ef4444;
   --destructive-foreground: #ffffff;
   --border: #1f2937;
   --input: #1f2937;
@@ -54,9 +54,14 @@ body {
   background: #00cccc;
 }
 
-/* Smooth transitions */
-* {
-  transition: all 0.2s ease-in-out;
+/* Hide scrollbar for carousel */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 /* Glass effect */
@@ -96,21 +101,6 @@ body {
   box-shadow: 0 10px 20px rgba(0, 230, 230, 0.3);
 }
 
-/* Loading animations */
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.loading {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
 /* Video overlay */
 .video-overlay {
   background: linear-gradient(to bottom, transparent 0%, rgba(11, 14, 23, 0.3) 50%, rgba(11, 14, 23, 0.8) 100%);
@@ -122,9 +112,51 @@ body {
   backdrop-filter: blur(20px);
 }
 
+/* Fullscreen video */
+.fullscreen-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background: #0b0e17;
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
   .movie-card:hover {
     transform: none;
   }
+}
+
+/* Animation classes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-fadeInDown {
+  animation: fadeInDown 0.6s ease-out;
 }

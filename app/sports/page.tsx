@@ -4,361 +4,346 @@ import { useState, useEffect } from "react"
 import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Search, Calendar, Clock, Users, MapPin, Play, Star } from "lucide-react"
+import { Play, Calendar, Clock, Users, Trophy, Tv } from "lucide-react"
 import Image from "next/image"
 
-const mockSportsEvents = [
+interface SportEvent {
+  id: number
+  title: string
+  sport: string
+  teams: string[]
+  date: string
+  time: string
+  status: "Live" | "Upcoming" | "Completed"
+  thumbnail: string
+  description: string
+  venue: string
+  viewers?: number
+}
+
+const sports = ["All", "Football", "Basketball", "Soccer", "Baseball", "Tennis", "Boxing", "MMA", "Hockey"]
+
+const mockSportEvents: SportEvent[] = [
   {
     id: 1,
-    title: "UEFA Champions League Final",
+    title: "Super Bowl LVIII",
     sport: "Football",
-    teams: ["Manchester City", "Inter Milan"],
-    date: "2024-06-10",
-    time: "20:00",
-    venue: "Wembley Stadium, London",
-    status: "Live",
-    viewers: "1.2M",
-    rating: 9.2,
-    thumbnail: "/placeholder.svg?height=200&width=300&text=Champions+League",
-    description: "The biggest club competition in European football reaches its climax.",
+    teams: ["Kansas City Chiefs", "San Francisco 49ers"],
+    date: "2024-02-11",
+    time: "18:30",
+    status: "Completed",
+    thumbnail: "/placeholder.svg",
+    description: "The biggest game in American football featuring two powerhouse teams.",
+    venue: "Allegiant Stadium, Las Vegas",
+    viewers: 115000000,
   },
   {
     id: 2,
     title: "NBA Finals Game 7",
     sport: "Basketball",
-    teams: ["Boston Celtics", "Miami Heat"],
-    date: "2024-06-15",
-    time: "21:00",
+    teams: ["Boston Celtics", "Dallas Mavericks"],
+    date: "2024-06-23",
+    time: "20:00",
+    status: "Completed",
+    thumbnail: "/placeholder.svg",
+    description: "The decisive game seven of the NBA Finals championship series.",
     venue: "TD Garden, Boston",
-    status: "Upcoming",
-    viewers: "890K",
-    rating: 8.9,
-    thumbnail: "/placeholder.svg?height=200&width=300&text=NBA+Finals",
-    description: "Winner takes all in this decisive Game 7 of the NBA Finals.",
+    viewers: 28000000,
   },
   {
     id: 3,
-    title: "Wimbledon Men's Final",
-    sport: "Tennis",
-    teams: ["Novak Djokovic", "Carlos Alcaraz"],
-    date: "2024-07-14",
-    time: "14:00",
-    venue: "All England Club, London",
-    status: "Upcoming",
-    viewers: "650K",
-    rating: 8.7,
-    thumbnail: "/placeholder.svg?height=200&width=300&text=Wimbledon",
-    description: "The most prestigious tennis tournament reaches its men's singles final.",
+    title: "UEFA Champions League Final",
+    sport: "Soccer",
+    teams: ["Real Madrid", "Borussia Dortmund"],
+    date: "2024-06-01",
+    time: "21:00",
+    status: "Completed",
+    thumbnail: "/placeholder.svg",
+    description: "The pinnacle of European club football competition.",
+    venue: "Wembley Stadium, London",
+    viewers: 450000000,
   },
   {
     id: 4,
-    title: "Formula 1 Monaco Grand Prix",
-    sport: "Racing",
-    teams: ["Max Verstappen", "Lewis Hamilton"],
-    date: "2024-05-26",
-    time: "15:00",
-    venue: "Circuit de Monaco",
-    status: "Ended",
-    viewers: "1.5M",
-    rating: 9.1,
-    thumbnail: "/placeholder.svg?height=200&width=300&text=Monaco+GP",
-    description: "The jewel in the crown of Formula 1 racing calendar.",
+    title: "World Series Game 5",
+    sport: "Baseball",
+    teams: ["Los Angeles Dodgers", "New York Yankees"],
+    date: "2024-10-30",
+    time: "20:08",
+    status: "Upcoming",
+    thumbnail: "/placeholder.svg",
+    description: "Historic matchup between two legendary baseball franchises.",
+    venue: "Yankee Stadium, New York",
   },
   {
     id: 5,
-    title: "Super Bowl LVIII",
-    sport: "American Football",
-    teams: ["Kansas City Chiefs", "Philadelphia Eagles"],
-    date: "2024-02-11",
-    time: "18:30",
-    venue: "Allegiant Stadium, Las Vegas",
-    status: "Ended",
-    viewers: "2.1M",
-    rating: 9.5,
-    thumbnail: "/placeholder.svg?height=200&width=300&text=Super+Bowl",
-    description: "The biggest sporting event in America returns to Las Vegas.",
+    title: "Wimbledon Men's Final",
+    sport: "Tennis",
+    teams: ["Carlos Alcaraz", "Novak Djokovic"],
+    date: "2024-07-14",
+    time: "14:00",
+    status: "Completed",
+    thumbnail: "/placeholder.svg",
+    description: "The most prestigious tennis tournament's championship match.",
+    venue: "All England Club, London",
+    viewers: 12000000,
   },
   {
     id: 6,
-    title: "World Cup Final",
-    sport: "Football",
-    teams: ["Argentina", "France"],
-    date: "2022-12-18",
-    time: "16:00",
-    venue: "Lusail Stadium, Qatar",
-    status: "Ended",
-    viewers: "3.2M",
-    rating: 9.8,
-    thumbnail: "/placeholder.svg?height=200&width=300&text=World+Cup",
-    description: "The greatest football match ever played - a final for the ages.",
+    title: "Heavyweight Championship",
+    sport: "Boxing",
+    teams: ["Tyson Fury", "Francis Ngannou"],
+    date: "2024-12-15",
+    time: "22:00",
+    status: "Upcoming",
+    thumbnail: "/placeholder.svg",
+    description: "Undisputed heavyweight championship bout.",
+    venue: "MGM Grand, Las Vegas",
   },
 ]
 
-const sportsCategories = ["All", "Football", "Basketball", "Tennis", "Racing", "American Football"]
-const statusOptions = ["All", "Live", "Upcoming", "Ended"]
-
 export default function SportsPage() {
-  const [events, setEvents] = useState(mockSportsEvents)
-  const [searchTerm, setSearchTerm] = useState("")
+  const [events, setEvents] = useState<SportEvent[]>(mockSportEvents)
+  const [filteredEvents, setFilteredEvents] = useState<SportEvent[]>(mockSportEvents)
   const [selectedSport, setSelectedSport] = useState("All")
   const [selectedStatus, setSelectedStatus] = useState("All")
-  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    filterEvents()
-  }, [searchTerm, selectedSport, selectedStatus])
+    let filtered = events
 
-  const filterEvents = () => {
-    setIsLoading(true)
+    // Filter by sport
+    if (selectedSport !== "All") {
+      filtered = filtered.filter((event) => event.sport === selectedSport)
+    }
 
-    setTimeout(() => {
-      const filtered = mockSportsEvents.filter((event) => {
-        const matchesSearch =
-          event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          event.teams.some((team) => team.toLowerCase().includes(searchTerm.toLowerCase()))
-        const matchesSport = selectedSport === "All" || event.sport === selectedSport
-        const matchesStatus = selectedStatus === "All" || event.status === selectedStatus
-        return matchesSearch && matchesSport && matchesStatus
-      })
+    // Filter by status
+    if (selectedStatus !== "All") {
+      filtered = filtered.filter((event) => event.status === selectedStatus)
+    }
 
-      // Sort by status priority: Live > Upcoming > Ended
-      filtered.sort((a, b) => {
-        const statusPriority = { Live: 3, Upcoming: 2, Ended: 1 }
-        return statusPriority[b.status] - statusPriority[a.status]
-      })
+    // Sort by date (upcoming first, then recent)
+    filtered.sort((a, b) => {
+      if (a.status === "Upcoming" && b.status !== "Upcoming") return -1
+      if (b.status === "Upcoming" && a.status !== "Upcoming") return 1
+      if (a.status === "Live" && b.status !== "Live") return -1
+      if (b.status === "Live" && a.status !== "Live") return 1
+      return new Date(b.date).getTime() - new Date(a.date).getTime()
+    })
 
-      setEvents(filtered)
-      setIsLoading(false)
-    }, 500)
-  }
+    setFilteredEvents(filtered)
+  }, [events, selectedSport, selectedStatus])
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Live":
-        return "bg-red-500"
+        return "bg-red-600 animate-pulse"
       case "Upcoming":
-        return "bg-green-500"
-      case "Ended":
-        return "bg-gray-500"
+        return "bg-green-600"
+      case "Completed":
+        return "bg-gray-600"
       default:
-        return "bg-gray-500"
+        return "bg-gray-600"
     }
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
+  }
+
+  const formatViewers = (viewers?: number) => {
+    if (!viewers) return ""
+    if (viewers >= 1000000) {
+      return `${(viewers / 1000000).toFixed(1)}M viewers`
+    }
+    if (viewers >= 1000) {
+      return `${(viewers / 1000).toFixed(0)}K viewers`
+    }
+    return `${viewers} viewers`
   }
 
   return (
     <div className="min-h-screen bg-[#0B0E17]">
       <Header />
 
-      <main className="container mx-auto px-4 py-8 mt-20">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Live <span className="gradient-text">Sports</span>
-          </h1>
-          <p className="text-[#B3B3B3] text-lg max-w-2xl">
-            Watch live sports events, highlights, and replays from around the world. Never miss a moment of the action.
-          </p>
-        </div>
-
-        {/* Search and Filters */}
-        <div className="mb-8 space-y-4">
-          {/* Search Bar */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3] w-5 h-5" />
-            <Input
-              placeholder="Search events, teams, or sports..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-[#1F2937] border-[#1F2937] text-white placeholder:text-[#B3B3B3] focus:border-[#00E6E6]"
-            />
+      <main className="pt-20 px-4 md:px-8 lg:px-16">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Sports Events</h1>
+            <p className="text-[#B3B3B3] text-lg">Watch live sports events and highlights from around the world</p>
           </div>
 
-          {/* Filters Row */}
-          <div className="flex flex-wrap gap-4 items-center">
-            {/* Sport Filter */}
-            <div className="flex flex-wrap gap-2">
-              {sportsCategories.map((sport) => (
-                <Button
-                  key={sport}
-                  variant={selectedSport === sport ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedSport(sport)}
-                  className={
-                    selectedSport === sport
-                      ? "bg-[#00E6E6] text-[#0B0E17] hover:bg-[#00CCCC]"
-                      : "border-[#1F2937] text-[#B3B3B3] hover:border-[#00E6E6] hover:text-[#00E6E6]"
-                  }
-                >
-                  {sport}
-                </Button>
-              ))}
-            </div>
-
-            {/* Status Filter */}
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="bg-[#1F2937] border border-[#1F2937] text-white rounded-md px-3 py-2 focus:border-[#00E6E6] focus:outline-none"
-            >
-              {statusOptions.map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Live Events Banner */}
-        <div className="mb-8">
-          <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-lg p-6 text-white">
+          {/* Live Events Banner */}
+          <div className="mb-8 bg-gradient-to-r from-red-600 to-red-800 rounded-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold mb-2">🔴 Live Now</h2>
-                <p className="text-red-100">Don't miss the action happening right now!</p>
+                <h2 className="text-2xl font-bold text-white mb-2">🔴 Live Now</h2>
+                <p className="text-red-100">Don't miss the action happening right now</p>
               </div>
-              <Button className="bg-white text-red-600 hover:bg-red-50">
-                <Play className="w-4 h-4 mr-2" />
+              <Button className="bg-white text-red-600 hover:bg-gray-100">
+                <Tv className="w-4 h-4 mr-2" />
                 Watch Live
               </Button>
             </div>
           </div>
-        </div>
 
-        {/* Results Count */}
-        <div className="mb-6">
-          <p className="text-[#B3B3B3]">{isLoading ? "Loading..." : `${events.length} events found`}</p>
-        </div>
-
-        {/* Events Grid */}
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="loading">
-                <div className="bg-[#1F2937] rounded-lg h-48 mb-4"></div>
-                <div className="bg-[#1F2937] h-4 rounded mb-2"></div>
-                <div className="bg-[#1F2937] h-3 rounded w-2/3"></div>
+          {/* Filters */}
+          <div className="mb-8 space-y-4">
+            {/* Sport Filter */}
+            <div>
+              <h3 className="text-white mb-2">Sports</h3>
+              <div className="flex flex-wrap gap-2">
+                {sports.map((sport) => (
+                  <Button
+                    key={sport}
+                    variant={selectedSport === sport ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedSport(sport)}
+                    className={
+                      selectedSport === sport
+                        ? "bg-[#00E6E6] text-[#0B0E17] hover:bg-[#00CCCC]"
+                        : "border-[#1F2937] text-[#B3B3B3] hover:bg-[#1F2937] hover:text-white"
+                    }
+                  >
+                    {sport}
+                  </Button>
+                ))}
               </div>
-            ))}
+            </div>
+
+            {/* Status Filter */}
+            <div>
+              <h3 className="text-white mb-2">Status</h3>
+              <div className="flex flex-wrap gap-2">
+                {["All", "Live", "Upcoming", "Completed"].map((status) => (
+                  <Button
+                    key={status}
+                    variant={selectedStatus === status ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedStatus(status)}
+                    className={
+                      selectedStatus === status
+                        ? "bg-[#00E6E6] text-[#0B0E17] hover:bg-[#00CCCC]"
+                        : "border-[#1F2937] text-[#B3B3B3] hover:bg-[#1F2937] hover:text-white"
+                    }
+                  >
+                    {status}
+                  </Button>
+                ))}
+              </div>
+            </div>
           </div>
-        ) : (
+
+          {/* Events Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((event) => (
-              <Card key={event.id} className="movie-card bg-[#1F2937] border-[#1F2937] overflow-hidden cursor-pointer">
-                <div className="relative h-48">
-                  <Image src={event.thumbnail || "/placeholder.svg"} alt={event.title} fill className="object-cover" />
-                  <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors duration-300" />
-
-                  {/* Status Badge */}
-                  <div className="absolute top-3 left-3">
-                    <Badge className={`${getStatusColor(event.status)} text-white font-semibold`}>
-                      {event.status === "Live" && <div className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse" />}
-                      {event.status}
-                    </Badge>
-                  </div>
-
-                  {/* Rating Badge */}
-                  <div className="absolute top-3 right-3">
-                    <Badge className="bg-[#00E6E6] text-[#0B0E17] font-semibold">
-                      <Star className="w-3 h-3 mr-1" />
-                      {event.rating}
-                    </Badge>
-                  </div>
-
-                  {/* Play Button Overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
-                    <Button size="lg" className="bg-[#00E6E6] text-[#0B0E17] hover:bg-[#00CCCC] rounded-full">
-                      <Play className="w-6 h-6" />
-                    </Button>
-                  </div>
-                </div>
-
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 text-[#00E6E6] text-sm mb-2">
-                    <span className="font-semibold">{event.sport}</span>
-                  </div>
-
-                  <h3 className="font-semibold text-white mb-2 line-clamp-2">{event.title}</h3>
-
-                  {/* Teams */}
-                  <div className="flex items-center justify-center gap-2 mb-3">
-                    <span className="text-white text-sm font-medium">{event.teams[0]}</span>
-                    <span className="text-[#B3B3B3]">vs</span>
-                    <span className="text-white text-sm font-medium">{event.teams[1]}</span>
-                  </div>
-
-                  {/* Event Details */}
-                  <div className="space-y-2 text-[#B3B3B3] text-sm">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      <span>{new Date(event.date).toLocaleDateString()}</span>
-                      <Clock className="w-4 h-4 ml-2" />
-                      <span>{event.time}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      <span className="truncate">{event.venue}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      <span>{event.viewers} viewers</span>
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <p className="text-[#B3B3B3] text-sm mt-3 line-clamp-2">{event.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {/* No Results */}
-        {!isLoading && events.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">⚽</div>
-            <h3 className="text-xl font-semibold text-white mb-2">No sports events found</h3>
-            <p className="text-[#B3B3B3] mb-4">Try adjusting your search or filter criteria</p>
-            <Button
-              onClick={() => {
-                setSearchTerm("")
-                setSelectedSport("All")
-                setSelectedStatus("All")
-              }}
-              className="bg-[#00E6E6] text-[#0B0E17] hover:bg-[#00CCCC]"
-            >
-              Clear Filters
-            </Button>
-          </div>
-        )}
-
-        {/* Sports Categories Section */}
-        <div className="mt-16">
-          <h2 className="text-3xl font-bold text-white mb-8 text-center">
-            Popular <span className="gradient-text">Sports</span>
-          </h2>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {sportsCategories.slice(1).map((sport) => (
+            {filteredEvents.map((event) => (
               <Card
-                key={sport}
-                className="bg-[#1F2937] border-[#1F2937] cursor-pointer hover:border-[#00E6E6] transition-colors"
+                key={event.id}
+                className="bg-[#1F2937] border-[#1F2937] hover:border-[#00E6E6] transition-all duration-300 group"
               >
-                <CardContent className="p-4 text-center">
-                  <div className="text-3xl mb-2">
-                    {sport === "Football" && "⚽"}
-                    {sport === "Basketball" && "🏀"}
-                    {sport === "Tennis" && "🎾"}
-                    {sport === "Racing" && "🏎️"}
-                    {sport === "American Football" && "🏈"}
+                <CardContent className="p-0">
+                  <div className="relative">
+                    <Image
+                      src={event.thumbnail || "/placeholder.svg"}
+                      alt={event.title}
+                      width={400}
+                      height={225}
+                      className="w-full h-48 object-cover rounded-t-lg"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.src = "/placeholder.svg"
+                      }}
+                    />
+
+                    {/* Status Badge */}
+                    <div
+                      className={`absolute top-3 left-3 px-2 py-1 rounded text-xs font-bold text-white ${getStatusColor(event.status)}`}
+                    >
+                      {event.status === "Live" ? "🔴 LIVE" : event.status}
+                    </div>
+
+                    {/* Sport Badge */}
+                    <div className="absolute top-3 right-3 bg-[#00E6E6] text-[#0B0E17] px-2 py-1 rounded text-xs font-medium">
+                      {event.sport}
+                    </div>
+
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-t-lg flex items-center justify-center">
+                      <Button className="bg-[#00E6E6] text-[#0B0E17] hover:bg-[#00CCCC]">
+                        <Play className="w-5 h-5 mr-2" />
+                        {event.status === "Live"
+                          ? "Watch Live"
+                          : event.status === "Upcoming"
+                            ? "Set Reminder"
+                            : "Watch Highlights"}
+                      </Button>
+                    </div>
                   </div>
-                  <h3 className="text-white font-semibold">{sport}</h3>
+
+                  <div className="p-4">
+                    <h3 className="text-white font-bold text-lg mb-2 line-clamp-1">{event.title}</h3>
+
+                    {/* Teams */}
+                    <div className="flex items-center justify-center mb-3">
+                      <span className="text-[#00E6E6] font-medium text-sm">{event.teams[0]}</span>
+                      <span className="text-[#B3B3B3] mx-2">vs</span>
+                      <span className="text-[#00E6E6] font-medium text-sm">{event.teams[1]}</span>
+                    </div>
+
+                    {/* Date and Time */}
+                    <div className="flex items-center gap-4 mb-3 text-[#B3B3B3] text-sm">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        <span>{formatDate(event.date)}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        <span>{event.time}</span>
+                      </div>
+                    </div>
+
+                    {/* Venue */}
+                    <div className="flex items-center gap-1 mb-3 text-[#B3B3B3] text-sm">
+                      <Trophy className="w-4 h-4" />
+                      <span className="line-clamp-1">{event.venue}</span>
+                    </div>
+
+                    {/* Viewers */}
+                    {event.viewers && (
+                      <div className="flex items-center gap-1 mb-3 text-[#00E6E6] text-sm">
+                        <Users className="w-4 h-4" />
+                        <span>{formatViewers(event.viewers)}</span>
+                      </div>
+                    )}
+
+                    <p className="text-[#B3B3B3] text-sm line-clamp-2">{event.description}</p>
+                  </div>
                 </CardContent>
               </Card>
             ))}
           </div>
+
+          {/* No Results */}
+          {filteredEvents.length === 0 && (
+            <div className="text-center py-16">
+              <h3 className="text-2xl font-semibold text-white mb-4">No events found</h3>
+              <p className="text-[#B3B3B3] mb-6">Try adjusting your filter criteria</p>
+              <Button
+                onClick={() => {
+                  setSelectedSport("All")
+                  setSelectedStatus("All")
+                }}
+                className="bg-[#00E6E6] text-[#0B0E17] hover:bg-[#00CCCC]"
+              >
+                Clear Filters
+              </Button>
+            </div>
+          )}
         </div>
       </main>
     </div>

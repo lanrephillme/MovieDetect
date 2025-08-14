@@ -1,16 +1,36 @@
 "use client"
 
-import { useState } from "react"
+import type React from "react"
+
+import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Search, Menu, X, User, Bell, Settings } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Search, Menu, X, User, Settings, Bell } from "lucide-react"
-import Image from "next/image"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false) // This would come from auth context
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [isLoggedIn, setIsLoggedIn] = useState(false) // Mock login state
   const router = useRouter()
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10)
+    }
+
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      router.push(`/search-results?q=${encodeURIComponent(searchQuery)}`)
+    }
+  }
 
   const handleLogin = () => {
     router.push("/login")
@@ -20,12 +40,12 @@ export function Header() {
     router.push("/signup")
   }
 
-  const handleSearch = () => {
-    // This would trigger the search modal
-    console.log("Open search modal")
+  const handleLogout = () => {
+    setIsLoggedIn(false)
+    // Add logout logic here
   }
 
-  const navigation = [
+  const navItems = [
     { name: "Home", href: "/" },
     { name: "Movies", href: "/movies" },
     { name: "TV Shows", href: "/tv-shows" },
@@ -34,22 +54,24 @@ export function Header() {
   ]
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-[#0B0E17]/95 backdrop-blur-md border-b border-[#1F2937]">
-      <div className="container mx-auto px-4">
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled ? "bg-[#0B0E17]/95 backdrop-blur-md border-b border-[#1F2937]" : "bg-transparent"
+      }`}
+    >
+      <div className="container mx-auto px-4 md:px-8 lg:px-16">
         <div className="flex items-center justify-between h-16">
-          {/* Logo and Brand */}
-          <Link href="/" className="flex items-center gap-3">
-            <div className="relative w-8 h-8">
-              <Image src="/placeholder-logo.svg" alt="MovieDetect Logo" fill className="object-contain" />
+          {/* Logo */}
+          <Link href="/" className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-[#00E6E6] rounded-lg flex items-center justify-center">
+              <span className="text-[#0B0E17] font-bold text-lg">M</span>
             </div>
-            <span className="text-xl font-bold text-white">
-              Movie<span className="text-[#00E6E6]">Detect</span>
-            </span>
+            <span className="text-white font-bold text-xl">MovieDetect</span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            {navigation.map((item) => (
+            {navItems.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
@@ -60,52 +82,86 @@ export function Header() {
             ))}
           </nav>
 
-          {/* Right Side Actions */}
-          <div className="flex items-center gap-4">
-            {/* Search Button */}
+          {/* Search Bar - Desktop */}
+          <div className="hidden lg:block flex-1 max-w-md mx-8">
+            <form onSubmit={handleSearch} className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3] w-4 h-4" />
+              <Input
+                type="text"
+                placeholder="Search movies, shows, actors..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-[#1F2937]/50 border-[#1F2937] text-white placeholder-[#B3B3B3] focus:border-[#00E6E6] focus:bg-[#1F2937]"
+              />
+            </form>
+          </div>
+
+          {/* User Actions */}
+          <div className="flex items-center space-x-4">
+            {/* Search Icon - Mobile */}
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleSearch}
-              className="text-[#B3B3B3] hover:text-[#00E6E6] hover:bg-[#1F2937]"
+              className="lg:hidden text-[#B3B3B3] hover:text-[#00E6E6]"
+              onClick={() => {
+                /* Open search modal */
+              }}
             >
               <Search className="w-5 h-5" />
             </Button>
 
-            {/* User Actions */}
             {isLoggedIn ? (
-              <div className="hidden md:flex items-center gap-2">
-                <Button variant="ghost" size="sm" className="text-[#B3B3B3] hover:text-[#00E6E6] hover:bg-[#1F2937]">
+              <>
+                {/* Notifications */}
+                <Button variant="ghost" size="sm" className="text-[#B3B3B3] hover:text-[#00E6E6] relative">
                   <Bell className="w-5 h-5" />
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#00E6E6] rounded-full"></span>
                 </Button>
-                <Button variant="ghost" size="sm" className="text-[#B3B3B3] hover:text-[#00E6E6] hover:bg-[#1F2937]">
+
+                {/* Settings */}
+                <Button variant="ghost" size="sm" className="text-[#B3B3B3] hover:text-[#00E6E6]">
                   <Settings className="w-5 h-5" />
                 </Button>
-                <Button variant="ghost" size="sm" className="text-[#B3B3B3] hover:text-[#00E6E6] hover:bg-[#1F2937]">
-                  <User className="w-5 h-5" />
-                </Button>
-              </div>
-            ) : (
-              <div className="hidden md:flex items-center gap-3">
+
+                {/* Profile */}
                 <Button
                   variant="ghost"
+                  size="sm"
+                  className="text-[#B3B3B3] hover:text-[#00E6E6]"
+                  onClick={handleLogout}
+                >
+                  <User className="w-5 h-5" />
+                </Button>
+              </>
+            ) : (
+              <>
+                {/* Login Button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={handleLogin}
-                  className="text-[#B3B3B3] hover:text-[#00E6E6] hover:bg-[#1F2937]"
+                  className="text-[#B3B3B3] hover:text-[#00E6E6] font-medium"
                 >
                   Sign In
                 </Button>
-                <Button onClick={handleSignup} className="bg-[#00E6E6] text-[#0B0E17] hover:bg-[#00CCCC] font-semibold">
+
+                {/* Get Started Button */}
+                <Button
+                  size="sm"
+                  onClick={handleSignup}
+                  className="bg-[#00E6E6] text-[#0B0E17] hover:bg-[#00CCCC] font-medium px-4"
+                >
                   Get Started
                 </Button>
-              </div>
+              </>
             )}
 
             {/* Mobile Menu Button */}
             <Button
               variant="ghost"
               size="sm"
+              className="md:hidden text-[#B3B3B3] hover:text-[#00E6E6]"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden text-[#B3B3B3] hover:text-[#00E6E6] hover:bg-[#1F2937]"
             >
               {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
@@ -114,44 +170,50 @@ export function Header() {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-[#1F2937] py-4">
-            <nav className="flex flex-col space-y-4">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="text-[#B3B3B3] hover:text-[#00E6E6] transition-colors duration-200 font-medium px-2 py-1"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
+          <div className="md:hidden border-t border-[#1F2937] bg-[#0B0E17]/95 backdrop-blur-md">
+            <div className="px-4 py-4 space-y-4">
+              {/* Mobile Search */}
+              <form onSubmit={handleSearch} className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3] w-4 h-4" />
+                <Input
+                  type="text"
+                  placeholder="Search movies, shows, actors..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-[#1F2937] border-[#1F2937] text-white placeholder-[#B3B3B3] focus:border-[#00E6E6]"
+                />
+              </form>
+
+              {/* Mobile Navigation */}
+              <nav className="space-y-2">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className="block text-[#B3B3B3] hover:text-[#00E6E6] transition-colors duration-200 font-medium py-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </nav>
 
               {/* Mobile Auth Buttons */}
               {!isLoggedIn && (
-                <div className="flex flex-col gap-3 pt-4 border-t border-[#1F2937]">
+                <div className="flex space-x-4 pt-4 border-t border-[#1F2937]">
                   <Button
-                    variant="ghost"
-                    onClick={() => {
-                      handleLogin()
-                      setIsMenuOpen(false)
-                    }}
-                    className="text-[#B3B3B3] hover:text-[#00E6E6] hover:bg-[#1F2937] justify-start"
+                    variant="outline"
+                    onClick={handleLogin}
+                    className="flex-1 border-[#00E6E6] text-[#00E6E6] hover:bg-[#00E6E6] hover:text-[#0B0E17] bg-transparent"
                   >
                     Sign In
                   </Button>
-                  <Button
-                    onClick={() => {
-                      handleSignup()
-                      setIsMenuOpen(false)
-                    }}
-                    className="bg-[#00E6E6] text-[#0B0E17] hover:bg-[#00CCCC] font-semibold justify-start"
-                  >
+                  <Button onClick={handleSignup} className="flex-1 bg-[#00E6E6] text-[#0B0E17] hover:bg-[#00CCCC]">
                     Get Started
                   </Button>
                 </div>
               )}
-            </nav>
+            </div>
           </div>
         )}
       </div>

@@ -1,16 +1,11 @@
 import type { Config } from "tailwindcss"
+import defaultConfig from "shadcn/ui/tailwind.config"
 
 const config: Config = {
-  darkMode: ["class"],
-  content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
-    "*.{js,ts,jsx,tsx,mdx}",
-  ],
-  prefix: "",
+  ...defaultConfig,
+  content: [...defaultConfig.content, "./pages/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}", "*.{js,ts,jsx,tsx,mdx}"],
   theme: {
+    ...defaultConfig.theme,
     container: {
       center: true,
       padding: "2rem",
@@ -19,46 +14,7 @@ const config: Config = {
       },
     },
     extend: {
-      colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "#0B0E17",
-        foreground: "#FFFFFF",
-        primary: {
-          DEFAULT: "#00E6E6",
-          foreground: "#0B0E17",
-        },
-        secondary: {
-          DEFAULT: "#1F2937",
-          foreground: "#FFFFFF",
-        },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
-        muted: {
-          DEFAULT: "#1F2937",
-          foreground: "#B3B3B3",
-        },
-        accent: {
-          DEFAULT: "#00E6E6",
-          foreground: "#0B0E17",
-        },
-        popover: {
-          DEFAULT: "#1F2937",
-          foreground: "#FFFFFF",
-        },
-        card: {
-          DEFAULT: "#1F2937",
-          foreground: "#FFFFFF",
-        },
-      },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
-      },
+      ...defaultConfig.theme.extend,
       keyframes: {
         "accordion-down": {
           from: { height: "0" },
@@ -76,16 +32,21 @@ const config: Config = {
           from: { transform: "translateY(100%)" },
           to: { transform: "translateY(0)" },
         },
+        pulse: {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.5" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         fadeIn: "fadeIn 0.6s ease-out",
         slideUp: "slideUp 0.4s ease-out",
+        pulse: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [...defaultConfig.plugins, require("tailwindcss-animate")],
 } satisfies Config
 
 export default config

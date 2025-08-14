@@ -9,15 +9,8 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "MovieDetect - AI-Powered Movie Discovery",
   description:
-    "Discover movies and TV shows using AI-powered search with text, voice, image, video, audio, and face recognition.",
-  keywords: "movies, TV shows, AI search, movie discovery, streaming, entertainment",
-  authors: [{ name: "MovieDetect Team" }],
-  openGraph: {
-    title: "MovieDetect - AI-Powered Movie Discovery",
-    description: "Discover movies and TV shows using AI-powered search",
-    type: "website",
-    url: "https://moviedetect.com",
-  },
+    "Discover movies and TV shows using advanced AI technology. Search by voice, image, audio, video, or text.",
+  keywords: "movies, AI, search, discovery, entertainment, streaming",
     generator: 'v0.app'
 }
 
@@ -29,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           {children}
         </ThemeProvider>
       </body>
