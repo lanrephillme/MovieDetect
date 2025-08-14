@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { X, Play, Plus, Check, Star, Volume2, VolumeX, Share, Heart, MessageCircle, Mail } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
+import { X, Play, Plus, Share2, Star, Volume2, VolumeX, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -56,7 +56,6 @@ interface MovieDetails {
   }>
   isInWatchlist: boolean
   userRating: number
-  aiConfidence?: number
 }
 
 export function MovieDetailModal({ isOpen, onClose, movieId }: MovieDetailModalProps) {
@@ -67,8 +66,6 @@ export function MovieDetailModal({ isOpen, onClose, movieId }: MovieDetailModalP
   const [isMuted, setIsMuted] = useState(true)
   const [userRating, setUserRating] = useState(0)
   const [hoveredRating, setHoveredRating] = useState(0)
-  const [isInWatchlist, setIsInWatchlist] = useState(false)
-  const [isLiked, setIsLiked] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
@@ -98,20 +95,13 @@ export function MovieDetailModal({ isOpen, onClose, movieId }: MovieDetailModalP
       if (data.success && data.movie) {
         setMovie(data.movie)
         setUserRating(data.movie.userRating || 0)
-        setIsInWatchlist(data.movie.isInWatchlist || false)
       } else {
         // Fallback mock data
-        const mockMovie = generateMockMovieDetails(id)
-        setMovie(mockMovie)
-        setUserRating(mockMovie.userRating || 0)
-        setIsInWatchlist(mockMovie.isInWatchlist || false)
+        setMovie(generateMockMovieDetails(id))
       }
     } catch (error) {
       console.error("Error fetching movie details:", error)
-      const mockMovie = generateMockMovieDetails(id)
-      setMovie(mockMovie)
-      setUserRating(mockMovie.userRating || 0)
-      setIsInWatchlist(mockMovie.isInWatchlist || false)
+      setMovie(generateMockMovieDetails(id))
     } finally {
       setLoading(false)
     }
@@ -288,7 +278,6 @@ export function MovieDetailModal({ isOpen, onClose, movieId }: MovieDetailModalP
       ],
       isInWatchlist: false,
       userRating: 0,
-      aiConfidence: Math.floor(Math.random() * 40) + 60,
     }
   }
 
@@ -334,7 +323,7 @@ export function MovieDetailModal({ isOpen, onClose, movieId }: MovieDetailModalP
   const handleAddToWatchlist = async () => {
     if (!movie) return
     try {
-      const endpoint = isInWatchlist ? "/api/watchlist/remove" : "/api/watchlist/add"
+      const endpoint = movie.isInWatchlist ? "/api/watchlist/remove" : "/api/watchlist/add"
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -343,35 +332,10 @@ export function MovieDetailModal({ isOpen, onClose, movieId }: MovieDetailModalP
 
       const result = await response.json()
       if (result.success) {
-        setIsInWatchlist(!isInWatchlist)
+        setMovie((prev) => (prev ? { ...prev, isInWatchlist: !prev.isInWatchlist } : null))
       }
     } catch (error) {
       console.error("Error updating watchlist:", error)
-    }
-  }
-
-  const handleShare = (platform: string) => {
-    if (!movie) return
-
-    const url = `${window.location.origin}/movie/${movie.id}`
-    const text = `Check out ${movie.title} (${movie.year}) - ${movie.synopsis.slice(0, 100)}...`
-
-    switch (platform) {
-      case "whatsapp":
-        window.open(`https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`, "_blank")
-        break
-      case "twitter":
-        window.open(
-          `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
-          "_blank",
-        )
-        break
-      case "email":
-        window.open(
-          `mailto:?subject=${encodeURIComponent(movie.title)}&body=${encodeURIComponent(`${text}\n\n${url}`)}`,
-          "_blank",
-        )
-        break
     }
   }
 
@@ -448,10 +412,6 @@ export function MovieDetailModal({ isOpen, onClose, movieId }: MovieDetailModalP
                     src={movie.backdrop || "/placeholder.svg"}
                     alt={movie.title}
                     className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement
-                      target.src = "/placeholder.svg"
-                    }}
                   />
                 )}
 
@@ -477,12 +437,6 @@ export function MovieDetailModal({ isOpen, onClose, movieId }: MovieDetailModalP
                         <Star className="w-5 h-5 text-yellow-400 fill-current" />
                         <span className="text-white font-semibold text-lg">{movie.ratings.userAverage.toFixed(1)}</span>
                       </div>
-                      {movie.aiConfidence && (
-                        <>
-                          <span className="text-gray-300">•</span>
-                          <Badge className="bg-green-600 text-white">AI Match: {movie.aiConfidence}%</Badge>
-                        </>
-                      )}
                     </div>
 
                     <div className="flex flex-wrap gap-2 mb-6">
@@ -512,8 +466,8 @@ export function MovieDetailModal({ isOpen, onClose, movieId }: MovieDetailModalP
                         className="border-white/50 text-white hover:bg-white/20 bg-black/30 backdrop-blur-sm px-6 py-3 text-lg"
                         onClick={handleAddToWatchlist}
                       >
-                        {isInWatchlist ? <Check className="w-6 h-6 mr-2" /> : <Plus className="w-6 h-6 mr-2" />}
-                        {isInWatchlist ? "In Watchlist" : "Add to Watchlist"}
+                        <Plus className="w-6 h-6 mr-2" />
+                        {movie.isInWatchlist ? "Remove from" : "Add to"} Watchlist
                       </Button>
 
                       <Button
@@ -529,41 +483,8 @@ export function MovieDetailModal({ isOpen, onClose, movieId }: MovieDetailModalP
                         size="lg"
                         variant="outline"
                         className="border-white/50 text-white hover:bg-white/20 bg-black/30 backdrop-blur-sm px-6 py-3 text-lg"
-                        onClick={() => setIsLiked(!isLiked)}
                       >
-                        <Heart className={`w-6 h-6 ${isLiked ? "fill-current text-red-500" : ""}`} />
-                      </Button>
-                    </div>
-
-                    {/* Share Buttons */}
-                    <div className="flex items-center space-x-4 mb-8">
-                      <span className="text-white font-medium">Share:</span>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-green-500/50 text-green-400 hover:bg-green-500/20 bg-transparent"
-                        onClick={() => handleShare("whatsapp")}
-                      >
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        WhatsApp
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-blue-500/50 text-blue-400 hover:bg-blue-500/20 bg-transparent"
-                        onClick={() => handleShare("twitter")}
-                      >
-                        <Share className="w-4 h-4 mr-2" />
-                        Twitter/X
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-gray-500/50 text-gray-400 hover:bg-gray-500/20 bg-transparent"
-                        onClick={() => handleShare("email")}
-                      >
-                        <Mail className="w-4 h-4 mr-2" />
-                        Email
+                        <Share2 className="w-6 h-6" />
                       </Button>
                     </div>
 
@@ -587,7 +508,6 @@ export function MovieDetailModal({ isOpen, onClose, movieId }: MovieDetailModalP
                           </button>
                         ))}
                       </div>
-                      {userRating > 0 && <span className="text-gray-300">Your rating: {userRating}/5</span>}
                     </div>
                   </div>
                 </div>
@@ -690,8 +610,7 @@ export function MovieDetailModal({ isOpen, onClose, movieId }: MovieDetailModalP
                           {movie.streamingPlatforms.map((platform, index) => (
                             <Card
                               key={index}
-                              className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-colors cursor-pointer"
-                              onClick={() => window.open(platform.link, "_blank")}
+                              className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-colors"
                             >
                               <CardContent className="p-4">
                                 <div className="flex items-center justify-between">
@@ -712,7 +631,11 @@ export function MovieDetailModal({ isOpen, onClose, movieId }: MovieDetailModalP
                                   </div>
                                   <div className="text-right">
                                     {platform.price && <div className="text-white font-medium">{platform.price}</div>}
-                                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white mt-1">
+                                    <Button
+                                      size="sm"
+                                      className="bg-blue-600 hover:bg-blue-700 text-white mt-1"
+                                      onClick={() => window.open(platform.link, "_blank")}
+                                    >
                                       {platform.type === "subscription"
                                         ? "Watch"
                                         : platform.type === "rent"
@@ -755,7 +678,27 @@ export function MovieDetailModal({ isOpen, onClose, movieId }: MovieDetailModalP
 
                   {activeTab === "similar" && (
                     <div>
-                      <h3 className="text-2xl font-bold text-white mb-6">Similar Movies</h3>
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-2xl font-bold text-white">Similar Movies</h3>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="border-gray-600 text-gray-400 hover:text-white hover:border-gray-400 bg-transparent"
+                            onClick={() => scrollSimilarMovies("left")}
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="border-gray-600 text-gray-400 hover:text-white hover:border-gray-400 bg-transparent"
+                            onClick={() => scrollSimilarMovies("right")}
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
                       <div
                         id="similar-movies-scroll"
                         className="flex space-x-4 overflow-x-auto scrollbar-hide pb-4"
@@ -804,7 +747,7 @@ export function MovieDetailModal({ isOpen, onClose, movieId }: MovieDetailModalP
                         <CardContent className="p-6">
                           <h4 className="text-xl font-semibold text-white mb-4">Match Score</h4>
                           <div className="flex items-center space-x-4 mb-4">
-                            <div className="text-4xl font-bold text-green-400">{movie.aiConfidence || 92}%</div>
+                            <div className="text-4xl font-bold text-green-400">92%</div>
                             <div className="text-gray-300">Based on your viewing history and preferences</div>
                           </div>
                           <div className="space-y-2">

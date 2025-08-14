@@ -9,61 +9,67 @@ import { Badge } from "@/components/ui/badge"
 
 interface SearchMethod {
   id: string
-  name: string
-  icon: React.ComponentType<{ className?: string }>
+  title: string
   description: string
+  icon: React.ReactNode
   color: string
+  bgColor: string
 }
 
 export function MovieDetectHero() {
   const [showSearchPlaceholder, setShowSearchPlaceholder] = useState(true)
   const [isVideoPlaying, setIsVideoPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(true)
-  const [showMovieInfo, setShowMovieInfo] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
 
   const searchMethods: SearchMethod[] = [
     {
       id: "text",
-      name: "Text Search",
-      icon: Search,
-      description: "Search by movie title, actor, or genre",
-      color: "from-blue-500 to-blue-600",
+      title: "Text Search",
+      description: "Search by movie title, actor, or description",
+      icon: <Search className="w-6 h-6" />,
+      color: "text-blue-400",
+      bgColor: "bg-blue-500/20 hover:bg-blue-500/30",
     },
     {
       id: "voice",
-      name: "Voice Search",
-      icon: Mic,
+      title: "Voice Search",
       description: "Describe the movie you're looking for",
-      color: "from-green-500 to-green-600",
+      icon: <Mic className="w-6 h-6" />,
+      color: "text-green-400",
+      bgColor: "bg-green-500/20 hover:bg-green-500/30",
     },
     {
       id: "image",
-      name: "Image Search",
-      icon: ImageIcon,
-      description: "Upload a movie poster or screenshot",
-      color: "from-purple-500 to-purple-600",
+      title: "Image Search",
+      description: "Upload a screenshot or poster",
+      icon: <ImageIcon className="w-6 h-6" />,
+      color: "text-purple-400",
+      bgColor: "bg-purple-500/20 hover:bg-purple-500/30",
     },
     {
       id: "audio",
-      name: "Audio Search",
-      icon: Music,
-      description: "Find movies by soundtrack or dialogue",
-      color: "from-orange-500 to-orange-600",
+      title: "Audio Search",
+      description: "Upload soundtrack or dialogue",
+      icon: <Music className="w-6 h-6" />,
+      color: "text-yellow-400",
+      bgColor: "bg-yellow-500/20 hover:bg-yellow-500/30",
     },
     {
       id: "video",
-      name: "Video Search",
-      icon: Video,
-      description: "Upload a movie clip or trailer",
-      color: "from-red-500 to-red-600",
+      title: "Video Search",
+      description: "Upload a video clip or scene",
+      icon: <Video className="w-6 h-6" />,
+      color: "text-red-400",
+      bgColor: "bg-red-500/20 hover:bg-red-500/30",
     },
     {
       id: "face",
-      name: "Face Recognition",
-      icon: User,
+      title: "Face Recognition",
       description: "Find movies by actor's face",
-      color: "from-pink-500 to-pink-600",
+      icon: <User className="w-6 h-6" />,
+      color: "text-indigo-400",
+      bgColor: "bg-indigo-500/20 hover:bg-indigo-500/30",
     },
   ]
 
@@ -80,21 +86,17 @@ export function MovieDetectHero() {
   }
 
   useEffect(() => {
-    // Auto-start video after 3 seconds
+    // Auto-start video after 3 seconds and hide search placeholder
     const timer = setTimeout(() => {
       if (videoRef.current) {
         videoRef.current
           .play()
           .then(() => {
             setIsVideoPlaying(true)
-            // Hide search placeholder and show movie info after video starts
-            setTimeout(() => {
-              setShowSearchPlaceholder(false)
-              setShowMovieInfo(true)
-            }, 1000)
+            setShowSearchPlaceholder(false)
           })
           .catch((error) => {
-            console.log("Video autoplay failed:", error)
+            console.log("Hero video autoplay failed:", error)
           })
       }
     }, 3000)
@@ -114,7 +116,7 @@ export function MovieDetectHero() {
             setIsVideoPlaying(true)
           })
           .catch((error) => {
-            console.log("Video play failed:", error)
+            console.log("Hero video play failed:", error)
           })
       }
     }
@@ -127,19 +129,19 @@ export function MovieDetectHero() {
     }
   }
 
-  const handleSearchMethodClick = (method: SearchMethod) => {
-    console.log(`Opening ${method.name} search...`)
+  const handleSearchMethodClick = (methodId: string) => {
+    console.log(`Search method clicked: ${methodId}`)
     // This would open the search modal with the specific method
   }
 
   const handleWatchNowClick = () => {
-    console.log("Opening movie detail modal...")
+    console.log("Watch Now clicked - would open movie detail modal")
     // This would open the movie detail modal
   }
 
   return (
-    <div className="relative h-screen overflow-hidden">
-      {/* Background Video/Image */}
+    <div className="relative min-h-screen overflow-hidden bg-black">
+      {/* Background Video */}
       <div className="absolute inset-0">
         <video
           ref={videoRef}
@@ -149,7 +151,7 @@ export function MovieDetectHero() {
           playsInline
           poster={featuredMovie.backdrop}
           onError={() => {
-            console.log("Video failed to load, using fallback image")
+            console.log("Hero video failed to load")
             setIsVideoPlaying(false)
           }}
         >
@@ -162,99 +164,85 @@ export function MovieDetectHero() {
             src={featuredMovie.backdrop || "/placeholder.svg"}
             alt={featuredMovie.title}
             className="w-full h-full object-cover"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement
-              target.src = "/placeholder.svg"
-            }}
           />
         )}
 
         {/* Gradient Overlays */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
       </div>
 
-      {/* Content Container */}
-      <div className="relative z-10 h-full flex flex-col">
-        {/* Top spacing for header */}
-        <div className="h-16" />
+      {/* Content */}
+      <div className="relative z-10 min-h-screen flex flex-col">
+        {/* Main Content Area */}
+        <div className="flex-1 flex items-center justify-center px-6 pt-20">
+          <div className="w-full max-w-6xl mx-auto">
+            {/* Search Placeholder - Shows initially, fades out when video starts */}
+            <div
+              className={`transition-all duration-1000 ease-in-out ${
+                showSearchPlaceholder ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+              }`}
+            >
+              <div className="text-center mb-12">
+                <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+                  Find Any Movie
+                  <br />
+                  <span className="bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+                    Using AI
+                  </span>
+                </h1>
+                <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
+                  Discover movies through text, voice, images, audio, video, or face recognition. Our AI understands
+                  what you're looking for.
+                </p>
+              </div>
 
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col justify-center items-center px-6 lg:px-8">
-          {/* Search Placeholder - Initially Visible */}
-          <div
-            className={`transition-all duration-1000 ease-in-out ${
-              showSearchPlaceholder ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
-            }`}
-          >
-            <div className="text-center mb-12">
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-                Find Any Movie
-                <br />
-                <span className="bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
-                  With AI Power
-                </span>
-              </h1>
-              <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-                Search movies using text, voice, images, audio, video clips, or even faces. Our AI understands what
-                you're looking for.
-              </p>
-            </div>
-
-            {/* Search Methods Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
-              {searchMethods.map((method) => {
-                const IconComponent = method.icon
-                return (
+              {/* Search Methods Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                {searchMethods.map((method) => (
                   <button
                     key={method.id}
-                    onClick={() => handleSearchMethodClick(method)}
-                    className="group relative p-6 bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl hover:bg-black/60 hover:border-white/20 transition-all duration-300 hover:scale-105"
+                    onClick={() => handleSearchMethodClick(method.id)}
+                    className={`${method.bgColor} border border-white/10 rounded-xl p-6 text-left transition-all duration-300 hover:scale-105 hover:border-white/20 backdrop-blur-sm`}
                   >
-                    <div
-                      className={`w-12 h-12 rounded-lg bg-gradient-to-r ${method.color} flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300`}
-                    >
-                      <IconComponent className="w-6 h-6 text-white" />
-                    </div>
-                    <h3 className="text-white font-semibold text-lg mb-2">{method.name}</h3>
-                    <p className="text-gray-400 text-sm leading-relaxed">{method.description}</p>
+                    <div className={`${method.color} mb-4`}>{method.icon}</div>
+                    <h3 className="text-white font-semibold text-lg mb-2">{method.title}</h3>
+                    <p className="text-gray-400 text-sm">{method.description}</p>
                   </button>
-                )
-              })}
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Watch Now Button - Shows when video starts */}
-          <div
-            className={`transition-all duration-1000 ease-in-out ${
-              !showSearchPlaceholder ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
-            }`}
-          >
-            <Button
-              size="lg"
-              onClick={handleWatchNowClick}
-              className="bg-white text-black hover:bg-gray-200 px-12 py-4 text-xl font-semibold rounded-full shadow-2xl hover:scale-105 transition-all duration-300"
+            {/* Watch Now Button - Shows when video is playing */}
+            <div
+              className={`transition-all duration-1000 ease-in-out ${
+                !showSearchPlaceholder ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+              }`}
             >
-              <Play className="w-8 h-8 mr-3" />
-              Watch Now
-            </Button>
+              <div className="text-center">
+                <Button
+                  size="lg"
+                  onClick={handleWatchNowClick}
+                  className="bg-white text-black hover:bg-gray-200 px-12 py-4 text-xl font-semibold rounded-full transition-all duration-300 hover:scale-105"
+                >
+                  <Play className="w-6 h-6 mr-3" />
+                  Watch Now
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Bottom Left Movie Info */}
-        <div
-          className={`absolute bottom-8 left-8 max-w-md transition-all duration-1000 ease-in-out ${
-            showMovieInfo ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-          }`}
-        >
+        <div className="absolute bottom-8 left-8 max-w-md">
           <div className="space-y-4">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">{featuredMovie.title}</h2>
               <div className="flex items-center space-x-4 mb-3">
-                <span className="text-gray-300 text-lg">{featuredMovie.year}</span>
+                <span className="text-gray-300">{featuredMovie.year}</span>
                 <div className="flex items-center space-x-1">
-                  <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                  <span className="text-white font-semibold text-lg">{featuredMovie.rating}</span>
+                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                  <span className="text-white font-medium">{featuredMovie.rating}</span>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 mb-4">
@@ -264,24 +252,25 @@ export function MovieDetectHero() {
                   </Badge>
                 ))}
               </div>
-              <p className="text-gray-300 text-base leading-relaxed line-clamp-3">{featuredMovie.description}</p>
+              <p className="text-gray-300 text-sm leading-relaxed mb-6 line-clamp-3">{featuredMovie.description}</p>
             </div>
 
             {/* Control Buttons */}
             <div className="flex items-center space-x-3">
               <Button
+                variant="outline"
                 size="sm"
                 onClick={handleVideoToggle}
-                className="bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/30"
+                className="border-white/50 text-white hover:bg-white/20 bg-black/30 backdrop-blur-sm"
               >
                 <Play className="w-4 h-4 mr-2" />
                 {isVideoPlaying ? "Pause" : "Play"} Trailer
               </Button>
               <Button
-                size="sm"
                 variant="outline"
+                size="sm"
                 onClick={handleMuteToggle}
-                className="border-white/30 text-white hover:bg-white/20 bg-transparent"
+                className="border-white/50 text-white hover:bg-white/20 bg-black/30 backdrop-blur-sm"
               >
                 {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
               </Button>

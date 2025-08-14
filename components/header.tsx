@@ -1,25 +1,20 @@
 "use client"
 
 import { useState } from "react"
-import { Menu, X, Search, LogIn, UserPlus } from "lucide-react"
+import { Menu, X, Search, User, Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
-  const menuItems = [
-    { name: "Home", href: "/" },
-    { name: "Movies", href: "/movies" },
-    { name: "TV Shows", href: "/tv-shows" },
-    { name: "Watchlist", href: "/watchlist" },
-    { name: "Features", href: "/features" },
-    { name: "Pricing", href: "/pricing" },
-  ]
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen)
+  }
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-gray-800/50">
-      <div className="container mx-auto px-6 lg:px-8">
+    <header className="fixed top-0 left-0 right-0 z-40 bg-black/80 backdrop-blur-md border-b border-gray-800/50">
+      <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo and Brand */}
           <div className="flex items-center space-x-3">
@@ -43,78 +38,88 @@ export function Header() {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-8">
-            {menuItems.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                className="text-gray-300 hover:text-white transition-colors duration-200 font-medium"
-              >
-                {item.name}
-              </a>
-            ))}
+          <nav className="hidden md:flex items-center space-x-8">
+            <a href="/" className="text-white hover:text-gray-300 transition-colors font-medium">
+              Home
+            </a>
+            <a href="/movies" className="text-gray-400 hover:text-white transition-colors">
+              Movies
+            </a>
+            <a href="/tv-shows" className="text-gray-400 hover:text-white transition-colors">
+              TV Shows
+            </a>
+            <a href="/watchlist" className="text-gray-400 hover:text-white transition-colors">
+              Watchlist
+            </a>
+            <a href="/features" className="text-gray-400 hover:text-white transition-colors">
+              Features
+            </a>
+            <a href="/pricing" className="text-gray-400 hover:text-white transition-colors">
+              Pricing
+            </a>
           </nav>
 
-          {/* Desktop Auth Buttons */}
-          <div className="hidden lg:flex items-center space-x-4">
-            <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white hover:bg-white/10">
-              <Search className="w-4 h-4 mr-2" />
-              Search
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center space-x-4">
+            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+              <Search className="w-5 h-5" />
             </Button>
-            <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white hover:bg-white/10">
-              <LogIn className="w-4 h-4 mr-2" />
+            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white relative">
+              <Bell className="w-5 h-5" />
+              <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
+            </Button>
+            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+              <User className="w-5 h-5" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-gray-600 text-gray-300 hover:text-white hover:border-white bg-transparent"
+            >
               Sign In
             </Button>
-            <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white">
-              <UserPlus className="w-4 h-4 mr-2" />
+            <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
               Sign Up
             </Button>
           </div>
 
           {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="lg:hidden text-white hover:bg-white/10"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
+          <Button variant="ghost" size="sm" className="md:hidden text-white" onClick={toggleMenu}>
             {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </Button>
         </div>
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden py-4 border-t border-gray-800/50">
+          <div className="md:hidden border-t border-gray-800 py-4">
             <nav className="flex flex-col space-y-4">
-              {menuItems.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  className="text-gray-300 hover:text-white transition-colors duration-200 font-medium py-2"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.name}
-                </a>
-              ))}
-              <div className="flex flex-col space-y-3 pt-4 border-t border-gray-800/50">
+              <a href="/" className="text-white hover:text-gray-300 transition-colors font-medium">
+                Home
+              </a>
+              <a href="/movies" className="text-gray-400 hover:text-white transition-colors">
+                Movies
+              </a>
+              <a href="/tv-shows" className="text-gray-400 hover:text-white transition-colors">
+                TV Shows
+              </a>
+              <a href="/watchlist" className="text-gray-400 hover:text-white transition-colors">
+                Watchlist
+              </a>
+              <a href="/features" className="text-gray-400 hover:text-white transition-colors">
+                Features
+              </a>
+              <a href="/pricing" className="text-gray-400 hover:text-white transition-colors">
+                Pricing
+              </a>
+              <div className="flex flex-col space-y-3 pt-4 border-t border-gray-800">
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  className="text-gray-300 hover:text-white hover:bg-white/10 justify-start"
+                  className="border-gray-600 text-gray-300 hover:text-white hover:border-white bg-transparent"
                 >
-                  <Search className="w-4 h-4 mr-2" />
-                  Search
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-300 hover:text-white hover:bg-white/10 justify-start"
-                >
-                  <LogIn className="w-4 h-4 mr-2" />
                   Sign In
                 </Button>
-                <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white justify-start">
-                  <UserPlus className="w-4 h-4 mr-2" />
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
                   Sign Up
                 </Button>
               </div>
