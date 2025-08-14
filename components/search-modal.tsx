@@ -191,8 +191,19 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
       const data = await response.json()
 
-      if (data.success && data.results) {
-        setSearchResults(data.results)
+      if (data.success && data.results && Array.isArray(data.results)) {
+        // Ensure each result has proper structure
+        const validatedResults = data.results.map((result: any) => ({
+          id: result.id || Math.random(),
+          title: result.title || "Unknown Title",
+          year: result.year || 2023,
+          poster: result.poster || "/placeholder.svg",
+          rating: result.rating || 0,
+          genre: Array.isArray(result.genre) ? result.genre : [],
+          confidence: result.confidence || 0,
+          matchReason: result.matchReason || "AI match",
+        }))
+        setSearchResults(validatedResults)
       } else {
         // Mock results for demonstration
         setSearchResults(generateMockResults())
@@ -505,54 +516,72 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
           </Card>
 
           {/* Search Results */}
-          {searchResults.length > 0 && (
+          {searchResults && searchResults.length > 0 && (
             <div>
               <h3 className="text-2xl font-bold text-white mb-6">Search Results</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {searchResults.map((result) => (
-                  <Card
-                    key={result.id}
-                    className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-colors cursor-pointer"
-                  >
-                    <CardContent className="p-0">
-                      <div className="flex">
-                        <img
-                          src={result.poster || "/placeholder.svg"}
-                          alt={result.title}
-                          className="w-24 h-36 object-cover rounded-l-lg"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement
-                            target.src = "/placeholder.svg"
-                          }}
-                        />
-                        <div className="p-4 flex-1">
-                          <div className="flex items-start justify-between mb-2">
-                            <h4 className="text-white font-semibold text-lg line-clamp-2">{result.title}</h4>
-                            <Badge className="bg-green-600 text-white ml-2">{result.confidence}%</Badge>
-                          </div>
-                          <p className="text-gray-400 text-sm mb-2">{result.year}</p>
-                          <div className="flex flex-wrap gap-1 mb-3">
-                            {result.genre.map((g) => (
-                              <Badge key={g} variant="outline" className="border-gray-600 text-gray-300 text-xs">
-                                {g}
-                              </Badge>
-                            ))}
-                          </div>
-                          <p className="text-gray-300 text-sm mb-2">{result.matchReason}</p>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-1">
-                              <span className="text-yellow-400">★</span>
-                              <span className="text-white text-sm font-medium">{result.rating}</span>
+                {searchResults.map((result) => {
+                  // Ensure result and result.genre exist and are valid
+                  const safeResult = {
+                    id: result?.id || Math.random(),
+                    title: result?.title || "Unknown Title",
+                    year: result?.year || 2023,
+                    poster: result?.poster || "/placeholder.svg",
+                    rating: result?.rating || 0,
+                    genre: Array.isArray(result?.genre) ? result.genre : [],
+                    confidence: result?.confidence || 0,
+                    matchReason: result?.matchReason || "AI match",
+                  }
+
+                  return (
+                    <Card
+                      key={safeResult.id}
+                      className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-colors cursor-pointer"
+                    >
+                      <CardContent className="p-0">
+                        <div className="flex">
+                          <img
+                            src={safeResult.poster || "/placeholder.svg"}
+                            alt={safeResult.title}
+                            className="w-24 h-36 object-cover rounded-l-lg"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement
+                              target.src = "/placeholder.svg"
+                            }}
+                          />
+                          <div className="p-4 flex-1">
+                            <div className="flex items-start justify-between mb-2">
+                              <h4 className="text-white font-semibold text-lg line-clamp-2">{safeResult.title}</h4>
+                              <Badge className="bg-green-600 text-white ml-2">{safeResult.confidence}%</Badge>
                             </div>
-                            <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
-                              View Details
-                            </Button>
+                            <p className="text-gray-400 text-sm mb-2">{safeResult.year}</p>
+                            <div className="flex flex-wrap gap-1 mb-3">
+                              {safeResult.genre.map((g, index) => (
+                                <Badge
+                                  key={`${g}-${index}`}
+                                  variant="outline"
+                                  className="border-gray-600 text-gray-300 text-xs"
+                                >
+                                  {g}
+                                </Badge>
+                              ))}
+                            </div>
+                            <p className="text-gray-300 text-sm mb-2">{safeResult.matchReason}</p>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-1">
+                                <span className="text-yellow-400">★</span>
+                                <span className="text-white text-sm font-medium">{safeResult.rating}</span>
+                              </div>
+                              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+                                View Details
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  )
+                })}
               </div>
             </div>
           )}
