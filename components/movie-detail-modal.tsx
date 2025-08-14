@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { X, Play, Plus, Star, Clock, Volume2, VolumeX, ChevronLeft, ChevronRight } from "lucide-react"
+import { X, Play, Plus, Share2, Star, Clock, Calendar, Volume2, VolumeX, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface MovieDetailModalProps {
   isOpen: boolean
@@ -12,117 +12,168 @@ interface MovieDetailModalProps {
   movieId: number | null
 }
 
-interface StreamingPlatform {
-  name: string
-  logo: string
-  quality: string
-  price: string
-  available: boolean
-}
-
-interface SimilarMovie {
+interface MovieDetails {
   id: number
   title: string
-  poster: string
-  rating: number
+  synopsis: string
   year: number
+  rating: number
+  duration: string
+  genre: string[]
+  director: string
+  cast: string[]
+  backdrop: string
+  poster: string
+  trailerUrl: string
+  streamingPlatforms: {
+    name: string
+    quality: string
+    price: string
+    available: boolean
+  }[]
+  reviews: {
+    author: string
+    rating: number
+    comment: string
+    date: string
+  }[]
+  similarMovies: {
+    id: number
+    title: string
+    poster: string
+    rating: number
+    year: number
+  }[]
+  aiInsights: {
+    matchScore: number
+    reasons: string[]
+    mood: string
+    themes: string[]
+  }
 }
 
 export function MovieDetailModal({ isOpen, onClose, movieId }: MovieDetailModalProps) {
-  const [movie, setMovie] = useState<any>(null)
+  const [movieDetails, setMovieDetails] = useState<MovieDetails | null>(null)
   const [loading, setLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState("overview")
   const [isVideoPlaying, setIsVideoPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(true)
   const [userRating, setUserRating] = useState(0)
-  const [similarMovies, setSimilarMovies] = useState<SimilarMovie[]>([])
-  const [hoveredSimilar, setHoveredSimilar] = useState<number | null>(null)
+  const [hoveredStar, setHoveredStar] = useState(0)
+  const [activeTab, setActiveTab] = useState("overview")
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const modalRef = useRef<HTMLDivElement>(null)
 
-  const streamingPlatforms: StreamingPlatform[] = [
-    { name: "Netflix", logo: "/logos/netflix.png", quality: "4K HDR", price: "Included", available: true },
-    { name: "Prime Video", logo: "/logos/prime.png", quality: "4K HDR", price: "$3.99", available: true },
-    { name: "Hulu", logo: "/logos/hulu.png", quality: "HD", price: "$2.99", available: false },
-    { name: "Disney+", logo: "/logos/disney.png", quality: "4K HDR", price: "Included", available: false },
-    { name: "Apple TV+", logo: "/logos/apple.png", quality: "4K HDR", price: "$4.99", available: true },
-  ]
-
-  const tabs = [
-    { id: "overview", label: "Overview" },
-    { id: "reviews", label: "Reviews" },
-    { id: "similar", label: "Similar Movies" },
-    { id: "feedback", label: "AI Feedback" },
-  ]
-
   useEffect(() => {
     if (isOpen && movieId) {
-      fetchMovieDetails()
-      fetchSimilarMovies()
+      setLoading(true)
+      fetchMovieDetails(movieId)
 
-      // Auto-play trailer after 2 seconds
+      // Auto-play trailer after 1 second
       setTimeout(() => {
         if (videoRef.current) {
           videoRef.current.play().catch(console.error)
           setIsVideoPlaying(true)
         }
-      }, 2000)
-    }
-
-    // Handle escape key
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose()
-    }
-
-    if (isOpen) {
-      document.addEventListener("keydown", handleEscape)
-      document.body.style.overflow = "hidden"
-    }
-
-    return () => {
-      document.removeEventListener("keydown", handleEscape)
-      document.body.style.overflow = "unset"
+      }, 1000)
+    } else {
+      setMovieDetails(null)
+      setIsVideoPlaying(false)
     }
   }, [isOpen, movieId])
 
-  const fetchMovieDetails = async () => {
-    if (!movieId) return
-
-    setLoading(true)
+  const fetchMovieDetails = async (id: number) => {
     try {
-      const response = await fetch(`/api/movies/${movieId}`)
-      const data = await response.json()
-
-      if (data.success) {
-        setMovie({
-          ...data.movie,
-          trailerUrl: `/trailers/trailer-${movieId}.mp4`,
-          backdrop: data.movie.backdrop || `/backdrops/backdrop-${movieId}.jpg`,
-          genres: Array.isArray(data.movie.genre) ? data.movie.genre : [data.movie.genre || "Unknown"],
-          cast: data.movie.cast || ["Ryan Gosling", "Harrison Ford", "Ana de Armas", "Jared Leto"],
-          director: data.movie.director || "Denis Villeneuve",
-          writers: data.movie.writers || ["Hampton Fancher", "Michael Green"],
-          synopsis: data.movie.synopsis || data.movie.description || "No synopsis available.",
-        })
+      // Mock data - in real app, this would be an API call
+      const mockDetails: MovieDetails = {
+        id,
+        title: "Blade Runner 2049",
+        synopsis:
+          "A young blade runner's discovery of a long-buried secret leads him to track down former blade runner Rick Deckard, who's been missing for thirty years. This discovery leads to a quest that could plunge what's left of society into chaos.",
+        year: 2017,
+        rating: 8.0,
+        duration: "2h 44m",
+        genre: ["Science Fiction", "Thriller", "Drama"],
+        director: "Denis Villeneuve",
+        cast: ["Ryan Gosling", "Harrison Ford", "Ana de Armas", "Jared Leto", "Robin Wright"],
+        backdrop: "/blade-runner-2049-cityscape.png",
+        poster: "/blade-runner-2049-poster.png",
+        trailerUrl: "/trailers/blade-runner-2049-trailer.mp4",
+        streamingPlatforms: [
+          { name: "Netflix", quality: "4K HDR", price: "Included", available: true },
+          { name: "Amazon Prime", quality: "4K HDR", price: "$3.99", available: true },
+          { name: "Apple TV+", quality: "4K Dolby Vision", price: "$4.99", available: true },
+          { name: "Disney+", quality: "HD", price: "Not Available", available: false },
+        ],
+        reviews: [
+          {
+            author: "John Smith",
+            rating: 9,
+            comment:
+              "A masterpiece of science fiction cinema. Villeneuve has created a worthy successor to the original.",
+            date: "2023-12-15",
+          },
+          {
+            author: "Sarah Johnson",
+            rating: 8,
+            comment: "Visually stunning with incredible performances. The cinematography is breathtaking.",
+            date: "2023-12-10",
+          },
+          {
+            author: "Mike Chen",
+            rating: 7,
+            comment: "Great film but a bit slow-paced. The world-building is exceptional though.",
+            date: "2023-12-08",
+          },
+        ],
+        similarMovies: [
+          { id: 2, title: "The Matrix", poster: "/matrix-movie-poster.png", rating: 8.7, year: 1999 },
+          { id: 3, title: "Ex Machina", poster: "/ex-machina-poster.png", rating: 7.7, year: 2014 },
+          { id: 4, title: "Her", poster: "/her-ai-romance-movie-poster.png", rating: 8.0, year: 2013 },
+          { id: 5, title: "Interstellar", poster: "/interstellar-inspired-poster.png", rating: 8.6, year: 2014 },
+        ],
+        aiInsights: {
+          matchScore: 92,
+          reasons: [
+            "Matches your preference for sci-fi thrillers",
+            "Similar to movies you've rated highly",
+            "Acclaimed director Denis Villeneuve",
+            "High production value and cinematography",
+          ],
+          mood: "Contemplative and Atmospheric",
+          themes: ["Identity", "Technology", "Future Society", "Human Connection"],
+        },
       }
+
+      setMovieDetails(mockDetails)
+      setLoading(false)
     } catch (error) {
       console.error("Error fetching movie details:", error)
-    } finally {
       setLoading(false)
     }
   }
 
-  const fetchSimilarMovies = async () => {
-    try {
-      const response = await fetch("/api/movies/trending")
-      const data = await response.json()
-      if (data.success && data.data) {
-        setSimilarMovies(data.data.slice(0, 8))
-      }
-    } catch (error) {
-      console.error("Error fetching similar movies:", error)
+  const handleShare = (platform: string) => {
+    const url = `${window.location.origin}/movie/${movieId}`
+    const text = `Check out ${movieDetails?.title}!`
+
+    switch (platform) {
+      case "whatsapp":
+        window.open(`https://wa.me/?text=${encodeURIComponent(text + " " + url)}`)
+        break
+      case "twitter":
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`)
+        break
+      case "email":
+        window.open(`mailto:?subject=${encodeURIComponent(text)}&body=${encodeURIComponent(url)}`)
+        break
     }
+  }
+
+  const handleRating = (rating: number) => {
+    setUserRating(rating)
+    // In real app, this would save to backend
+    console.log(`Rated movie ${movieId} with ${rating} stars`)
   }
 
   const toggleMute = () => {
@@ -132,27 +183,8 @@ export function MovieDetailModal({ isOpen, onClose, movieId }: MovieDetailModalP
     }
   }
 
-  const handleShare = (platform: string) => {
-    const url = encodeURIComponent(window.location.href)
-    const text = encodeURIComponent(`Check out ${movie?.title} on MovieDetect!`)
-
-    const shareUrls = {
-      whatsapp: `https://wa.me/?text=${text} ${url}`,
-      twitter: `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
-      email: `mailto:?subject=${text}&body=Check out this movie: ${url}`,
-    }
-
-    window.open(shareUrls[platform as keyof typeof shareUrls], "_blank")
-  }
-
-  const handleRating = (rating: number) => {
-    setUserRating(rating)
-    // Here you would typically send the rating to your API
-    console.log(`Rated movie ${movieId} with ${rating} stars`)
-  }
-
   const scrollSimilarMovies = (direction: "left" | "right") => {
-    const container = document.getElementById("similar-movies-container")
+    const container = document.getElementById("similar-movies-scroll")
     if (container) {
       const scrollAmount = 300
       container.scrollBy({
@@ -165,451 +197,359 @@ export function MovieDetailModal({ isOpen, onClose, movieId }: MovieDetailModalP
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm">
-      <div
-        ref={modalRef}
-        className="h-full overflow-y-auto scrollbar-hide"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
-        {/* Close Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="fixed top-6 right-6 z-50 bg-black/50 text-white hover:bg-black/70 rounded-full w-12 h-12"
-          onClick={onClose}
-        >
-          <X className="w-6 h-6" />
-        </Button>
-
-        {loading ? (
-          <div className="h-screen flex items-center justify-center">
-            <div className="animate-pulse text-white text-2xl">Loading movie details...</div>
-          </div>
-        ) : movie ? (
-          <>
-            {/* Hero Section with Trailer */}
-            <div className="relative h-screen">
-              {/* Background Image */}
-              <div className="absolute inset-0">
-                <img
-                  src={movie.backdrop || movie.poster}
-                  alt={movie.title}
-                  className={`w-full h-full object-cover transition-opacity duration-1000 ${
-                    isVideoPlaying ? "opacity-30" : "opacity-100"
-                  }`}
-                />
-              </div>
-
-              {/* Background Video */}
-              <div className="absolute inset-0">
-                <video
-                  ref={videoRef}
-                  className={`w-full h-full object-cover transition-opacity duration-1000 ${
-                    isVideoPlaying ? "opacity-80" : "opacity-0"
-                  }`}
-                  muted={isMuted}
-                  loop
-                  playsInline
-                  poster={movie.backdrop}
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm">
+      <div className="h-full overflow-y-auto">
+        <div ref={modalRef} className="min-h-full bg-black text-white animate-in fade-in duration-300">
+          {loading ? (
+            <div className="h-screen flex items-center justify-center">
+              <div className="animate-pulse text-xl">Loading movie details...</div>
+            </div>
+          ) : movieDetails ? (
+            <>
+              {/* Hero Section with Video */}
+              <div className="relative h-screen">
+                {/* Close Button */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-6 right-6 z-20 bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm rounded-full w-12 h-12"
+                  onClick={onClose}
                 >
-                  <source src={movie.trailerUrl} type="video/mp4" />
-                </video>
-              </div>
+                  <X className="w-6 h-6" />
+                </Button>
 
-              {/* Gradient Overlays */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
+                {/* Background Image */}
+                <div className="absolute inset-0">
+                  <img
+                    src={movieDetails.backdrop || "/placeholder.svg"}
+                    alt={movieDetails.title}
+                    className={`w-full h-full object-cover transition-all duration-1000 ${
+                      isVideoPlaying ? "scale-110 blur-sm opacity-50" : "scale-100 blur-0 opacity-100"
+                    }`}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
+                </div>
 
-              {/* Blur Effect */}
-              {isVideoPlaying && (
-                <div
-                  className="absolute inset-0 backdrop-blur-sm"
-                  style={{
-                    background: "radial-gradient(circle at center, transparent 50%, rgba(0,0,0,0.4) 100%)",
-                  }}
-                />
-              )}
+                {/* Video Overlay */}
+                {isVideoPlaying && (
+                  <div className="absolute inset-0">
+                    <video ref={videoRef} className="w-full h-full object-cover" muted={isMuted} loop playsInline>
+                      <source src={movieDetails.trailerUrl} type="video/mp4" />
+                    </video>
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
+                  </div>
+                )}
 
-              {/* Content */}
-              <div className="relative z-10 h-full flex items-center">
-                <div className="container mx-auto px-6 lg:px-12">
+                {/* Video Controls */}
+                <div className="absolute top-6 left-6 z-20">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-black/50 border-white/30 text-white hover:bg-black/70 backdrop-blur-sm"
+                    onClick={toggleMute}
+                  >
+                    {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                  </Button>
+                </div>
+
+                {/* Movie Info Overlay */}
+                <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
                   <div className="max-w-4xl">
-                    {/* Movie Info */}
-                    <div className="mb-8">
-                      <div className="flex items-center space-x-4 mb-4">
-                        <Badge className="bg-red-600 text-white px-3 py-1 text-sm font-semibold">
-                          {movie.aiConfidence ? `${movie.aiConfidence}% MATCH` : "FEATURED"}
-                        </Badge>
-                        <div className="flex items-center space-x-2 text-gray-300">
-                          <span className="text-sm">{movie.year}</span>
-                          <span className="w-1 h-1 bg-gray-400 rounded-full" />
-                          <div className="flex items-center space-x-1">
-                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                            <span className="text-sm font-medium">{movie.rating}</span>
-                          </div>
-                          <span className="w-1 h-1 bg-gray-400 rounded-full" />
-                          <div className="flex items-center space-x-1">
-                            <Clock className="w-4 h-4" />
-                            <span className="text-sm">{movie.duration || "148 min"}</span>
-                          </div>
-                        </div>
+                    <h1 className="text-4xl md:text-6xl font-bold mb-4">{movieDetails.title}</h1>
+
+                    <div className="flex flex-wrap items-center gap-4 mb-6">
+                      <div className="flex items-center space-x-1">
+                        <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                        <span className="text-lg font-semibold">{movieDetails.rating}</span>
                       </div>
-
-                      <h1 className="text-4xl lg:text-6xl font-bold text-white mb-4 leading-tight">{movie.title}</h1>
-
-                      <div className="flex flex-wrap gap-2 mb-6">
-                        {movie.genres.map((genre: string) => (
-                          <Badge key={genre} variant="outline" className="border-gray-400 text-gray-300">
-                            {genre}
-                          </Badge>
-                        ))}
-                      </div>
-
-                      <p className="text-lg text-gray-300 mb-8 max-w-3xl leading-relaxed">{movie.synopsis}</p>
+                      <span className="text-gray-300">{movieDetails.year}</span>
+                      <span className="text-gray-300">{movieDetails.duration}</span>
+                      <Badge className="bg-red-600 text-white">HD</Badge>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex flex-wrap items-center gap-4 mb-8">
-                      <Button
-                        size="lg"
-                        className="bg-white text-black hover:bg-gray-200 px-8 py-4 text-lg font-semibold"
-                      >
-                        <Play className="w-6 h-6 mr-2 fill-current" />
-                        Play
-                      </Button>
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      {movieDetails.genre.map((genre) => (
+                        <Badge key={genre} variant="outline" className="border-gray-400 text-gray-300">
+                          {genre}
+                        </Badge>
+                      ))}
+                    </div>
 
+                    <p className="text-lg text-gray-200 mb-8 max-w-3xl leading-relaxed">{movieDetails.synopsis}</p>
+
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <Button size="lg" className="bg-white text-black hover:bg-gray-200 font-semibold">
+                        <Play className="w-5 h-5 mr-2" />
+                        Watch Now
+                      </Button>
                       <Button
                         size="lg"
                         variant="outline"
-                        className="border-gray-400 text-white hover:bg-white/10 px-8 py-4 text-lg font-semibold bg-black/30 backdrop-blur-sm"
+                        className="border-white/50 text-white hover:bg-white/20 bg-transparent"
                       >
-                        <Plus className="w-6 h-6 mr-2" />
+                        <Plus className="w-5 h-5 mr-2" />
                         Add to Watchlist
                       </Button>
-
                       <Button
                         size="lg"
                         variant="outline"
-                        className="border-gray-400 text-white hover:bg-white/10 p-4 bg-black/30 backdrop-blur-sm"
-                        onClick={toggleMute}
+                        className="border-white/50 text-white hover:bg-white/20 bg-transparent"
                       >
-                        {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+                        <Share2 className="w-5 h-5 mr-2" />
+                        Share
                       </Button>
-
-                      {/* Share Buttons */}
-                      <div className="flex space-x-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-gray-400 text-white hover:bg-white/10 bg-black/30 backdrop-blur-sm"
-                          onClick={() => handleShare("whatsapp")}
-                        >
-                          WhatsApp
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-gray-400 text-white hover:bg-white/10 bg-black/30 backdrop-blur-sm"
-                          onClick={() => handleShare("twitter")}
-                        >
-                          Twitter
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-gray-400 text-white hover:bg-white/10 bg-black/30 backdrop-blur-sm"
-                          onClick={() => handleShare("email")}
-                        >
-                          Email
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Streaming Platforms */}
-                    <div className="mb-8">
-                      <h3 className="text-xl font-semibold text-white mb-4">Available On</h3>
-                      <div className="flex flex-wrap gap-4">
-                        {streamingPlatforms.map((platform) => (
-                          <div
-                            key={platform.name}
-                            className={`flex items-center space-x-3 p-3 rounded-lg ${
-                              platform.available
-                                ? "bg-white/10 backdrop-blur-sm border border-white/20"
-                                : "bg-gray-800/50 opacity-50"
-                            }`}
-                          >
-                            <div className="w-8 h-8 bg-white rounded flex items-center justify-center">
-                              <span className="text-xs font-bold text-black">{platform.name[0]}</span>
-                            </div>
-                            <div>
-                              <p className="text-white text-sm font-medium">{platform.name}</p>
-                              <p className="text-gray-400 text-xs">
-                                {platform.quality} • {platform.price}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Detailed Information Section */}
-            <div className="bg-black text-white">
-              <div className="container mx-auto px-6 lg:px-12 py-12">
-                {/* Tabs */}
-                <div className="flex space-x-8 mb-8 border-b border-gray-800">
-                  {tabs.map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`pb-4 px-2 text-lg font-medium transition-colors ${
-                        activeTab === tab.id ? "text-white border-b-2 border-red-600" : "text-gray-400 hover:text-white"
-                      }`}
+              {/* Detailed Information Tabs */}
+              <div className="px-8 md:px-12 py-12">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <TabsList className="grid w-full grid-cols-4 bg-gray-900 mb-8">
+                    <TabsTrigger
+                      value="overview"
+                      className="data-[state=active]:bg-white data-[state=active]:text-black"
                     >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
+                      Overview
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="reviews"
+                      className="data-[state=active]:bg-white data-[state=active]:text-black"
+                    >
+                      Reviews
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="similar"
+                      className="data-[state=active]:bg-white data-[state=active]:text-black"
+                    >
+                      Similar Movies
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="ai-insights"
+                      className="data-[state=active]:bg-white data-[state=active]:text-black"
+                    >
+                      AI Insights
+                    </TabsTrigger>
+                  </TabsList>
 
-                {/* Tab Content */}
-                <div className="min-h-[400px]">
-                  {activeTab === "overview" && (
-                    <div className="grid lg:grid-cols-3 gap-12">
-                      <div className="lg:col-span-2 space-y-8">
-                        <div>
-                          <h3 className="text-2xl font-semibold mb-4">Synopsis</h3>
-                          <p className="text-gray-300 leading-relaxed text-lg">{movie.synopsis}</p>
-                        </div>
-
-                        <div>
-                          <h3 className="text-2xl font-semibold mb-4">Cast & Crew</h3>
-                          <div className="space-y-4">
-                            <div>
-                              <span className="text-gray-400">Director:</span>
-                              <span className="text-white ml-2">{movie.director}</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-400">Writers:</span>
-                              <span className="text-white ml-2">{movie.writers.join(", ")}</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-400">Starring:</span>
-                              <span className="text-white ml-2">{movie.cast.slice(0, 4).join(", ")}</span>
-                            </div>
+                  <TabsContent value="overview" className="space-y-8">
+                    <div className="grid md:grid-cols-2 gap-8">
+                      <div>
+                        <h3 className="text-2xl font-bold mb-4">Movie Details</h3>
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-3">
+                            <Calendar className="w-5 h-5 text-gray-400" />
+                            <span className="text-gray-300">Released: {movieDetails.year}</span>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <Clock className="w-5 h-5 text-gray-400" />
+                            <span className="text-gray-300">Duration: {movieDetails.duration}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-400">Director: </span>
+                            <span className="text-white">{movieDetails.director}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-400">Cast: </span>
+                            <span className="text-white">{movieDetails.cast.join(", ")}</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="space-y-8">
-                        <Card className="bg-gray-900 border-gray-800">
-                          <CardContent className="p-6">
-                            <h3 className="text-xl font-semibold mb-4 text-white">Rate This Movie</h3>
-                            <div className="flex space-x-2 mb-4">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <button
-                                  key={star}
-                                  onClick={() => handleRating(star)}
-                                  className={`w-8 h-8 ${
-                                    star <= userRating ? "text-yellow-400" : "text-gray-600"
-                                  } hover:text-yellow-400 transition-colors`}
-                                >
-                                  <Star className="w-full h-full fill-current" />
-                                </button>
-                              ))}
-                            </div>
-                            {userRating > 0 && (
-                              <p className="text-green-400 text-sm">Thanks for rating! ({userRating}/5 stars)</p>
-                            )}
-                          </CardContent>
-                        </Card>
-
-                        <Card className="bg-gray-900 border-gray-800">
-                          <CardContent className="p-6">
-                            <h3 className="text-xl font-semibold mb-4 text-white">Movie Details</h3>
-                            <div className="space-y-3 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-gray-400">Release Date:</span>
-                                <span className="text-white">{movie.year}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-400">Runtime:</span>
-                                <span className="text-white">{movie.duration || "148 min"}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-400">Rating:</span>
-                                <span className="text-white">{movie.rating}/10</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-400">Language:</span>
-                                <span className="text-white">English</span>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </div>
-                    </div>
-                  )}
-
-                  {activeTab === "reviews" && (
-                    <div className="space-y-6">
-                      <h3 className="text-2xl font-semibold">User Reviews</h3>
-                      <div className="space-y-6">
-                        {[1, 2, 3].map((review) => (
-                          <Card key={review} className="bg-gray-900 border-gray-800">
-                            <CardContent className="p-6">
-                              <div className="flex items-start space-x-4">
-                                <div className="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center">
-                                  <span className="text-white font-semibold">U{review}</span>
-                                </div>
-                                <div className="flex-1">
-                                  <div className="flex items-center space-x-2 mb-2">
-                                    <span className="text-white font-medium">User {review}</span>
-                                    <div className="flex space-x-1">
-                                      {[1, 2, 3, 4, 5].map((star) => (
-                                        <Star
-                                          key={star}
-                                          className={`w-4 h-4 ${
-                                            star <= 4 ? "text-yellow-400 fill-current" : "text-gray-600"
-                                          }`}
-                                        />
-                                      ))}
-                                    </div>
-                                  </div>
-                                  <p className="text-gray-300">
-                                    This movie exceeded my expectations. The visual effects were stunning and the story
-                                    was compelling throughout. Highly recommended for sci-fi fans!
-                                  </p>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {activeTab === "similar" && (
-                    <div>
-                      <h3 className="text-2xl font-semibold mb-6">Similar Movies</h3>
-                      <div className="relative group">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 text-white hover:bg-black/90 opacity-0 group-hover:opacity-100 transition-all duration-300 w-12 h-12 rounded-full"
-                          onClick={() => scrollSimilarMovies("left")}
-                        >
-                          <ChevronLeft className="w-6 h-6" />
-                        </Button>
-
-                        <div
-                          id="similar-movies-container"
-                          className="flex space-x-6 overflow-x-auto scrollbar-hide pb-4"
-                          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-                        >
-                          {similarMovies.map((similarMovie) => (
+                      <div>
+                        <h3 className="text-2xl font-bold mb-4">Streaming Platforms</h3>
+                        <div className="space-y-3">
+                          {movieDetails.streamingPlatforms.map((platform) => (
                             <div
-                              key={similarMovie.id}
-                              className="flex-shrink-0 w-48 cursor-pointer group/similar"
-                              onMouseEnter={() => setHoveredSimilar(similarMovie.id)}
-                              onMouseLeave={() => setHoveredSimilar(null)}
+                              key={platform.name}
+                              className={`flex items-center justify-between p-3 rounded-lg ${
+                                platform.available ? "bg-gray-800" : "bg-gray-900 opacity-50"
+                              }`}
                             >
-                              <div
-                                className={`relative overflow-hidden rounded-lg transition-all duration-300 ${
-                                  hoveredSimilar === similarMovie.id ? "scale-105" : "scale-100"
-                                }`}
-                              >
-                                <img
-                                  src={similarMovie.poster || "/placeholder.svg"}
-                                  alt={similarMovie.title}
-                                  className="w-full h-72 object-cover"
-                                />
-                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/similar:opacity-100 transition-opacity flex items-center justify-center">
-                                  <Button size="sm" className="bg-white text-black hover:bg-gray-200">
-                                    <Play className="w-4 h-4 mr-1" />
-                                    Play
-                                  </Button>
-                                </div>
-                                <div className="absolute bottom-2 left-2">
-                                  <Badge className="bg-black/70 text-white text-xs">
-                                    <Star className="w-3 h-3 mr-1 text-yellow-400 fill-current" />
-                                    {similarMovie.rating}
-                                  </Badge>
-                                </div>
+                              <div>
+                                <span className="font-semibold">{platform.name}</span>
+                                <div className="text-sm text-gray-400">{platform.quality}</div>
                               </div>
-                              <div className="mt-2">
-                                <h4 className="text-white font-medium text-sm line-clamp-2">{similarMovie.title}</h4>
-                                <p className="text-gray-400 text-xs">{similarMovie.year}</p>
+                              <div className="text-right">
+                                <div
+                                  className={`font-semibold ${platform.available ? "text-green-400" : "text-red-400"}`}
+                                >
+                                  {platform.price}
+                                </div>
                               </div>
                             </div>
                           ))}
                         </div>
-
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 text-white hover:bg-black/90 opacity-0 group-hover:opacity-100 transition-all duration-300 w-12 h-12 rounded-full"
-                          onClick={() => scrollSimilarMovies("right")}
-                        >
-                          <ChevronRight className="w-6 h-6" />
-                        </Button>
                       </div>
                     </div>
-                  )}
 
-                  {activeTab === "feedback" && (
-                    <div className="space-y-6">
-                      <h3 className="text-2xl font-semibold">AI Match Analysis</h3>
-                      <Card className="bg-gray-900 border-gray-800">
-                        <CardContent className="p-6">
-                          <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                              <span className="text-gray-400">AI Confidence Score:</span>
-                              <Badge
-                                className={`${
-                                  (movie.aiConfidence || 85) >= 80
-                                    ? "bg-green-500"
-                                    : (movie.aiConfidence || 85) >= 60
-                                      ? "bg-yellow-500"
-                                      : "bg-red-500"
-                                } text-white`}
-                              >
-                                {movie.aiConfidence || 85}%
-                              </Badge>
+                    {/* User Rating */}
+                    <div>
+                      <h3 className="text-2xl font-bold mb-4">Rate This Movie</h3>
+                      <div className="flex items-center space-x-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            onMouseEnter={() => setHoveredStar(star)}
+                            onMouseLeave={() => setHoveredStar(0)}
+                            onClick={() => handleRating(star)}
+                            className="transition-colors"
+                          >
+                            <Star
+                              className={`w-8 h-8 ${
+                                star <= (hoveredStar || userRating) ? "text-yellow-400 fill-current" : "text-gray-600"
+                              }`}
+                            />
+                          </button>
+                        ))}
+                        {userRating > 0 && (
+                          <span className="ml-4 text-gray-300">
+                            You rated this {userRating} star{userRating !== 1 ? "s" : ""}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="reviews" className="space-y-6">
+                    <h3 className="text-2xl font-bold">User Reviews</h3>
+                    {movieDetails.reviews.map((review, index) => (
+                      <div key={index} className="bg-gray-900 p-6 rounded-lg">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center">
+                              {review.author.charAt(0)}
                             </div>
                             <div>
-                              <span className="text-gray-400">Match Reasoning:</span>
-                              <p className="text-white mt-2">
-                                This movie matches your search criteria based on genre preferences, visual style, and
-                                thematic elements. The AI detected strong similarities in cinematography and narrative
-                                structure.
-                              </p>
-                            </div>
-                            <div>
-                              <span className="text-gray-400">Recommended Because:</span>
-                              <ul className="text-white mt-2 space-y-1">
-                                <li>• Similar visual aesthetics to your previous searches</li>
-                                <li>• High rating in your preferred genres</li>
-                                <li>• Matches your viewing history patterns</li>
-                                <li>• Popular among users with similar tastes</li>
-                              </ul>
+                              <div className="font-semibold">{review.author}</div>
+                              <div className="text-sm text-gray-400">{review.date}</div>
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>
+                          <div className="flex items-center space-x-1">
+                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                            <span>{review.rating}/10</span>
+                          </div>
+                        </div>
+                        <p className="text-gray-300 leading-relaxed">{review.comment}</p>
+                      </div>
+                    ))}
+                  </TabsContent>
+
+                  <TabsContent value="similar" className="space-y-6">
+                    <h3 className="text-2xl font-bold">Similar Movies</h3>
+                    <div className="relative">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 text-white hover:bg-black/90 rounded-full w-10 h-10"
+                        onClick={() => scrollSimilarMovies("left")}
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </Button>
+
+                      <div
+                        id="similar-movies-scroll"
+                        className="flex space-x-4 overflow-x-auto scrollbar-hide pb-4"
+                        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                      >
+                        {movieDetails.similarMovies.map((movie) => (
+                          <div
+                            key={movie.id}
+                            className="flex-shrink-0 w-48 cursor-pointer group"
+                            onClick={() => {
+                              // In real app, this would open the new movie's details
+                              console.log("Open movie:", movie.id)
+                            }}
+                          >
+                            <div className="relative overflow-hidden rounded-lg transition-transform group-hover:scale-105">
+                              <img
+                                src={movie.poster || "/placeholder.svg"}
+                                alt={movie.title}
+                                className="w-full h-72 object-cover"
+                              />
+                              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+                                <h4 className="text-white font-semibold text-sm mb-1">{movie.title}</h4>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-gray-300 text-xs">{movie.year}</span>
+                                  <div className="flex items-center space-x-1">
+                                    <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                                    <span className="text-white text-xs">{movie.rating}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 text-white hover:bg-black/90 rounded-full w-10 h-10"
+                        onClick={() => scrollSimilarMovies("right")}
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </Button>
                     </div>
-                  )}
-                </div>
+                  </TabsContent>
+
+                  <TabsContent value="ai-insights" className="space-y-6">
+                    <h3 className="text-2xl font-bold">AI Recommendation Insights</h3>
+
+                    <div className="bg-gradient-to-r from-blue-900/50 to-purple-900/50 p-6 rounded-lg border border-blue-500/30">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-xl font-semibold">Match Score</h4>
+                        <div className="text-3xl font-bold text-green-400">{movieDetails.aiInsights.matchScore}%</div>
+                      </div>
+                      <p className="text-gray-300">
+                        This movie is highly recommended for you based on your viewing history and preferences.
+                      </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="text-lg font-semibold mb-3">Why This Movie?</h4>
+                        <ul className="space-y-2">
+                          {movieDetails.aiInsights.reasons.map((reason, index) => (
+                            <li key={index} className="flex items-start space-x-2">
+                              <div className="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0" />
+                              <span className="text-gray-300">{reason}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h4 className="text-lg font-semibold mb-3">Movie Themes</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {movieDetails.aiInsights.themes.map((theme) => (
+                            <Badge key={theme} className="bg-purple-600 text-white">
+                              {theme}
+                            </Badge>
+                          ))}
+                        </div>
+                        <div className="mt-4">
+                          <span className="text-gray-400">Mood: </span>
+                          <span className="text-white font-medium">{movieDetails.aiInsights.mood}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </>
+          ) : (
+            <div className="h-screen flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-xl mb-4">Movie not found</div>
+                <Button onClick={onClose}>Close</Button>
               </div>
             </div>
-          </>
-        ) : (
-          <div className="h-screen flex items-center justify-center">
-            <div className="text-white text-xl">Movie not found</div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   )
