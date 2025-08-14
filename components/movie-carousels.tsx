@@ -14,10 +14,11 @@ interface Movie {
   poster: string
   backdrop?: string
   year: number
-  genre: string[]
+  genre: string | string[]
   rating: number
-  duration?: number
+  duration?: number | string
   synopsis?: string
+  description?: string
   aiConfidence?: number
   trailerUrl?: string
   previewUrl?: string
@@ -55,10 +56,12 @@ export function MovieCarousels() {
         const response = await fetch(`/api/movies/${endpoint}`)
         const data = await response.json()
 
-        if (data.success) {
-          // Add mock preview URLs for demo
-          const moviesWithPreviews = data.data.map((movie: Movie) => ({
+        if (data.success && data.data && Array.isArray(data.data)) {
+          // Process movies and add mock preview URLs
+          const moviesWithPreviews = data.data.map((movie: any) => ({
             ...movie,
+            genre: Array.isArray(movie.genre) ? movie.genre : [movie.genre || "Unknown"],
+            synopsis: movie.synopsis || movie.description || `${movie.title} is a ${movie.year} ${movie.genre} film.`,
             previewUrl: `/previews/preview-${movie.id}.mp4`, // Mock preview URLs
             trailerUrl: `https://www.youtube.com/watch?v=trailer-${movie.id}`,
           }))
@@ -72,7 +75,7 @@ export function MovieCarousels() {
             },
           }))
         } else {
-          throw new Error(data.error || "Failed to fetch movies")
+          throw new Error(data.error || "Invalid response format")
         }
       } catch (error) {
         console.error(`Error fetching ${key}:`, error)
@@ -93,23 +96,29 @@ export function MovieCarousels() {
     fetchCarouselData("new-releases", "newReleases")
     fetchCarouselData("top-rated", "topRated")
 
-    // Fetch recommendations and watchlist
+    // Fetch recommendations
     fetch("/api/recommendations")
       .then((res) => res.json())
       .then((data) => {
-        if (data.success) {
+        if (data.success && data.movies && Array.isArray(data.movies)) {
+          const moviesWithPreviews = data.movies.map((movie: any) => ({
+            ...movie,
+            genre: Array.isArray(movie.genre) ? movie.genre : [movie.genre || "Unknown"],
+            synopsis: movie.synopsis || movie.description || `${movie.title} is a ${movie.year} ${movie.genre} film.`,
+            previewUrl: `/previews/preview-${movie.id}.mp4`,
+            trailerUrl: `https://www.youtube.com/watch?v=trailer-${movie.id}`,
+          }))
+
           setCarousels((prev) => ({
             ...prev,
             recommendations: {
               ...prev.recommendations,
-              movies: data.movies.map((movie: Movie) => ({
-                ...movie,
-                previewUrl: `/previews/preview-${movie.id}.mp4`,
-                trailerUrl: `https://www.youtube.com/watch?v=trailer-${movie.id}`,
-              })),
+              movies: moviesWithPreviews,
               loading: false,
             },
           }))
+        } else {
+          throw new Error("Invalid recommendations response")
         }
       })
       .catch((error) => {
@@ -124,19 +133,34 @@ export function MovieCarousels() {
         }))
       })
 
+    // Fetch watchlist
     fetch("/api/watchlist/user")
       .then((res) => res.json())
       .then((data) => {
-        if (data.success) {
+        if (data.success && data.movies && Array.isArray(data.movies)) {
+          const moviesWithPreviews = data.movies.map((movie: any) => ({
+            ...movie,
+            genre: Array.isArray(movie.genre) ? movie.genre : [movie.genre || "Unknown"],
+            synopsis: movie.synopsis || movie.description || `${movie.title} is a ${movie.year} ${movie.genre} film.`,
+            previewUrl: `/previews/preview-${movie.id}.mp4`,
+            trailerUrl: `https://www.youtube.com/watch?v=trailer-${movie.id}`,
+          }))
+
           setCarousels((prev) => ({
             ...prev,
             watchlist: {
               ...prev.watchlist,
-              movies: data.movies.map((movie: Movie) => ({
-                ...movie,
-                previewUrl: `/previews/preview-${movie.id}.mp4`,
-                trailerUrl: `https://www.youtube.com/watch?v=trailer-${movie.id}`,
-              })),
+              movies: moviesWithPreviews,
+              loading: false,
+            },
+          }))
+        } else {
+          // Watchlist might be empty, that's okay
+          setCarousels((prev) => ({
+            ...prev,
+            watchlist: {
+              ...prev.watchlist,
+              movies: [],
               loading: false,
             },
           }))
@@ -275,6 +299,10 @@ export function MovieCarousels() {
             Error loading {data.title.toLowerCase()}: {data.error}
           </p>
         </div>
+      ) : data.movies.length === 0 ? (
+        <div className="text-gray-400 p-4 mx-6">
+          <p>No movies found in {data.title.toLowerCase()}.</p>
+        </div>
       ) : (
         <div className="relative group">
           <Button
@@ -294,6 +322,9 @@ export function MovieCarousels() {
             {data.movies.map((movie) => {
               // Create preview video element
               createPreviewVideo(movie)
+
+              // Ensure genre is always an array
+              const genres = Array.isArray(movie.genre) ? movie.genre : [movie.genre || "Unknown"]
 
               return (
                 <div
@@ -393,7 +424,7 @@ export function MovieCarousels() {
                           </div>
                         </div>
                         <div className="flex flex-wrap gap-1 mb-2">
-                          {movie.genre.slice(0, 2).map((g) => (
+                          {genres.slice(0, 2).map((g) => (
                             <Badge key={g} variant="outline" className="border-gray-400 text-gray-300 text-xs">
                               {g}
                             </Badge>
@@ -437,7 +468,7 @@ export function MovieCarousels() {
                       <h3 className="text-white font-medium text-base line-clamp-2">{movie.title}</h3>
                       <div className="flex items-center justify-between mt-1">
                         <p className="text-gray-400 text-sm">{movie.year}</p>
-                        {movie.genre && <p className="text-gray-500 text-xs">{movie.genre.slice(0, 2).join(", ")}</p>}
+                        {genres.length > 0 && <p className="text-gray-500 text-xs">{genres.slice(0, 2).join(", ")}</p>}
                       </div>
                     </div>
                   )}
