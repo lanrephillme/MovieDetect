@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect, useRef } from "react"
-import { Search, Mic, Camera, Upload, Video, User, Play, Volume2, VolumeX, Loader2 } from "lucide-react"
+import { Search, Mic, Camera, Upload, Video, User, Play, Volume2, VolumeX, Loader2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -40,10 +40,13 @@ export function MovieDetectHero() {
   const [isRecording, setIsRecording] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [showSearchOverlay, setShowSearchOverlay] = useState(true)
+  const [errorMessage, setErrorMessage] = useState("")
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const cameraVideoRef = useRef<HTMLVideoElement>(null)
 
   const searchMethods = [
     {
@@ -77,6 +80,15 @@ export function MovieDetectHero() {
     return () => clearTimeout(timer)
   }, [])
 
+  // Cleanup camera stream on unmount
+  useEffect(() => {
+    return () => {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach((track) => track.stop())
+      }
+    }
+  }, [cameraStream])
+
   const handleVideoToggle = () => {
     if (videoRef.current) {
       if (isVideoPlaying) {
@@ -104,6 +116,7 @@ export function MovieDetectHero() {
 
   const startVoiceRecording = async () => {
     try {
+      setErrorMessage("")
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       const mediaRecorder = new MediaRecorder(stream)
       mediaRecorderRef.current = mediaRecorder
@@ -118,6 +131,8 @@ export function MovieDetectHero() {
         const audioFile = new File([audioBlob], "voice-search.wav", { type: "audio/wav" })
         setUploadedFile(audioFile)
         performSearch()
+        // Stop all tracks
+        stream.getTracks().forEach((track) => track.stop())
       }
 
       mediaRecorder.start()
@@ -132,7 +147,7 @@ export function MovieDetectHero() {
       }, 10000)
     } catch (error) {
       console.error("Error starting voice recording:", error)
-      alert("Could not access microphone. Please check permissions.")
+      setErrorMessage("Could not access microphone. Please check your browser permissions and try again.")
     }
   }
 
@@ -147,20 +162,95 @@ export function MovieDetectHero() {
     const file = event.target.files?.[0]
     if (file) {
       setUploadedFile(file)
+      setErrorMessage("")
       performSearch()
     }
   }
 
   const activateCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
-      // For demo purposes, we'll just trigger search
-      // In real implementation, you'd capture the video frame
-      performSearch()
-      stream.getTracks().forEach((track) => track.stop())
+      setErrorMessage("")
+
+      // Check if getUserMedia is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Camera access is not supported in this browser")
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: "user",
+        },
+      })
+
+      setCameraStream(stream)
+
+      if (cameraVideoRef.current) {
+        cameraVideoRef.current.srcObject = stream
+        cameraVideoRef.current.play()
+      }
+
+      // For demo purposes, we'll simulate capturing after 3 seconds
+      setTimeout(() => {
+        captureFromCamera()
+      }, 3000)
     } catch (error) {
       console.error("Error accessing camera:", error)
-      alert("Could not access camera. Please check permissions.")
+
+      let errorMsg = "Could not access camera. "
+
+      if (error instanceof Error) {
+        if (error.name === "NotAllowedError" || error.message.includes("Permission denied")) {
+          errorMsg += "Please allow camera access in your browser settings and try again."
+        } else if (error.name === "NotFoundError") {
+          errorMsg += "No camera found on this device."
+        } else if (error.name === "NotSupportedError") {
+          errorMsg += "Camera access is not supported in this browser."
+        } else {
+          errorMsg += "Please check your camera permissions and try again."
+        }
+      }
+
+      setErrorMessage(errorMsg)
+
+      // Offer file upload as fallback
+      setTimeout(() => {
+        if (fileInputRef.current) {
+          fileInputRef.current.click()
+        }
+      }, 2000)
+    }
+  }
+
+  const captureFromCamera = () => {
+    if (cameraVideoRef.current && cameraStream) {
+      // Create canvas to capture frame
+      const canvas = document.createElement("canvas")
+      const context = canvas.getContext("2d")
+
+      if (context) {
+        canvas.width = cameraVideoRef.current.videoWidth
+        canvas.height = cameraVideoRef.current.videoHeight
+        context.drawImage(cameraVideoRef.current, 0, 0)
+
+        // Convert to blob and create file
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" })
+              setUploadedFile(file)
+              performSearch()
+            }
+          },
+          "image/jpeg",
+          0.8,
+        )
+      }
+
+      // Stop camera stream
+      cameraStream.getTracks().forEach((track) => track.stop())
+      setCameraStream(null)
     }
   }
 
@@ -169,6 +259,7 @@ export function MovieDetectHero() {
 
     setIsSearching(true)
     setShowSearchOverlay(false)
+    setErrorMessage("")
 
     try {
       // Simulate API call
@@ -201,6 +292,8 @@ export function MovieDetectHero() {
       setSelectedResult(mockResults[0])
     } catch (error) {
       console.error("Search error:", error)
+      setErrorMessage("Search failed. Please try again.")
+      setShowSearchOverlay(true)
     } finally {
       setIsSearching(false)
     }
@@ -335,12 +428,25 @@ export function MovieDetectHero() {
                   remember.
                 </p>
 
+                {/* Error Message */}
+                {errorMessage && (
+                  <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4 mb-6 backdrop-blur-sm">
+                    <div className="flex items-center space-x-2">
+                      <AlertCircle className="w-5 h-5 text-red-400" />
+                      <p className="text-red-200">{errorMessage}</p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Search Method Tabs */}
                 <div className="flex flex-wrap gap-2 mb-6">
                   {searchMethods.map((method) => (
                     <button
                       key={method.id}
-                      onClick={() => setActiveSearchMethod(method.id)}
+                      onClick={() => {
+                        setActiveSearchMethod(method.id)
+                        setErrorMessage("")
+                      }}
                       className={`flex items-center space-x-2 px-3 py-2 rounded-full text-sm font-medium transition-all ${
                         activeSearchMethod === method.id
                           ? "bg-white text-black"
@@ -369,6 +475,18 @@ export function MovieDetectHero() {
                     <div className="text-center py-4">
                       <p className="text-white text-lg mb-4">{currentMethod?.description}</p>
                       {isRecording && <p className="text-red-400 text-sm animate-pulse">Recording... Speak now</p>}
+                      {cameraStream && (
+                        <div className="mb-4">
+                          <video
+                            ref={cameraVideoRef}
+                            className="w-64 h-48 mx-auto rounded-lg bg-black"
+                            autoPlay
+                            muted
+                            playsInline
+                          />
+                          <p className="text-blue-400 text-sm mt-2">Capturing in 3 seconds...</p>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -433,7 +551,11 @@ export function MovieDetectHero() {
                     size="lg"
                     variant="outline"
                     className="border-white/50 text-white hover:bg-white/20 bg-black/30 backdrop-blur-sm px-6 py-3 text-lg"
-                    onClick={() => setShowSearchOverlay(true)}
+                    onClick={() => {
+                      setShowSearchOverlay(true)
+                      setSelectedResult(null)
+                      setErrorMessage("")
+                    }}
                   >
                     New Search
                   </Button>
