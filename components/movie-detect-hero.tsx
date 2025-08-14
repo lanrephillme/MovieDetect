@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect, useRef } from "react"
 import { Play, Volume2, VolumeX, Search, Mic, Camera, Music, Video, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -18,12 +20,21 @@ interface HeroMovie {
   duration: number
 }
 
+interface SearchMethod {
+  id: string
+  title: string
+  description: string
+  icon: React.ComponentType<{ className?: string }>
+  color: string
+}
+
 export function MovieDetectHero() {
   const [currentMovie, setCurrentMovie] = useState<HeroMovie | null>(null)
   const [isVideoPlaying, setIsVideoPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(true)
   const [showSearchModal, setShowSearchModal] = useState(false)
   const [selectedSearchType, setSelectedSearchType] = useState<string>("")
+  const [showSearchPlaceholder, setShowSearchPlaceholder] = useState(true)
   const videoRef = useRef<HTMLVideoElement>(null)
   const playTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -66,85 +77,7 @@ export function MovieDetectHero() {
     },
   ]
 
-  useEffect(() => {
-    // Set initial featured movie
-    setCurrentMovie(featuredMovies[0])
-
-    // Auto-rotate featured movies every 10 seconds
-    const rotateInterval = setInterval(() => {
-      setCurrentMovie((prev) => {
-        if (!prev) return featuredMovies[0]
-        const currentIndex = featuredMovies.findIndex((movie) => movie.id === prev.id)
-        const nextIndex = (currentIndex + 1) % featuredMovies.length
-        return featuredMovies[nextIndex]
-      })
-    }, 10000)
-
-    return () => {
-      clearInterval(rotateInterval)
-      if (playTimeoutRef.current) {
-        clearTimeout(playTimeoutRef.current)
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    // Auto-play video after 2 seconds
-    if (currentMovie && videoRef.current) {
-      playTimeoutRef.current = setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current
-            .play()
-            .then(() => {
-              setIsVideoPlaying(true)
-            })
-            .catch((error) => {
-              console.log("Hero video playback failed:", error)
-              setIsVideoPlaying(false)
-            })
-        }
-      }, 2000)
-    }
-
-    return () => {
-      if (playTimeoutRef.current) {
-        clearTimeout(playTimeoutRef.current)
-      }
-    }
-  }, [currentMovie])
-
-  const handlePlayPause = () => {
-    if (videoRef.current) {
-      if (isVideoPlaying) {
-        videoRef.current.pause()
-        setIsVideoPlaying(false)
-      } else {
-        videoRef.current
-          .play()
-          .then(() => {
-            setIsVideoPlaying(true)
-          })
-          .catch((error) => {
-            console.log("Video play failed:", error)
-            setIsVideoPlaying(false)
-          })
-      }
-    }
-  }
-
-  const handleMuteToggle = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted
-      setIsMuted(!isMuted)
-    }
-  }
-
-  const handleSearchClick = (searchType: string) => {
-    setSelectedSearchType(searchType)
-    setShowSearchModal(true)
-  }
-
-  const searchMethods = [
+  const searchMethods: SearchMethod[] = [
     {
       id: "text",
       title: "Text Search",
@@ -188,6 +121,96 @@ export function MovieDetectHero() {
       color: "bg-pink-500",
     },
   ]
+
+  useEffect(() => {
+    // Set initial featured movie
+    setCurrentMovie(featuredMovies[0])
+
+    // Auto-rotate featured movies every 10 seconds
+    const rotateInterval = setInterval(() => {
+      setCurrentMovie((prev) => {
+        if (!prev) return featuredMovies[0]
+        const currentIndex = featuredMovies.findIndex((movie) => movie.id === prev.id)
+        const nextIndex = (currentIndex + 1) % featuredMovies.length
+        return featuredMovies[nextIndex]
+      })
+    }, 10000)
+
+    return () => {
+      clearInterval(rotateInterval)
+      if (playTimeoutRef.current) {
+        clearTimeout(playTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    // Auto-play video after 3 seconds and hide search placeholder
+    if (currentMovie && videoRef.current) {
+      playTimeoutRef.current = setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current
+            .play()
+            .then(() => {
+              setIsVideoPlaying(true)
+              // Hide search placeholder when video starts playing
+              setTimeout(() => {
+                setShowSearchPlaceholder(false)
+              }, 500)
+            })
+            .catch((error) => {
+              console.log("Hero video playback failed:", error)
+              setIsVideoPlaying(false)
+            })
+        }
+      }, 3000)
+    }
+
+    return () => {
+      if (playTimeoutRef.current) {
+        clearTimeout(playTimeoutRef.current)
+      }
+    }
+  }, [currentMovie])
+
+  const handlePlayPause = () => {
+    if (videoRef.current) {
+      if (isVideoPlaying) {
+        videoRef.current.pause()
+        setIsVideoPlaying(false)
+        setShowSearchPlaceholder(true)
+      } else {
+        videoRef.current
+          .play()
+          .then(() => {
+            setIsVideoPlaying(true)
+            setShowSearchPlaceholder(false)
+          })
+          .catch((error) => {
+            console.log("Video play failed:", error)
+            setIsVideoPlaying(false)
+            setShowSearchPlaceholder(true)
+          })
+      }
+    }
+  }
+
+  const handleMuteToggle = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted
+      setIsMuted(!isMuted)
+    }
+  }
+
+  const handleSearchClick = (searchType: string) => {
+    setSelectedSearchType(searchType)
+    setShowSearchModal(true)
+  }
+
+  const handleWatchNowClick = () => {
+    // This would open the movie detail modal
+    console.log("Opening movie detail modal for:", currentMovie?.title)
+  }
 
   if (!currentMovie) {
     return (
@@ -236,8 +259,12 @@ export function MovieDetectHero() {
 
         {/* Content */}
         <div className="relative z-10 h-full flex flex-col">
-          {/* Center Search Section */}
-          <div className="flex-1 flex items-center justify-center">
+          {/* Center Search Section - Shows when video is not playing */}
+          <div
+            className={`flex-1 flex items-center justify-center transition-all duration-500 ${
+              showSearchPlaceholder ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+          >
             <div className="text-center max-w-4xl mx-auto px-6">
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
                 Find Any Movie with AI
@@ -269,6 +296,22 @@ export function MovieDetectHero() {
                 })}
               </div>
             </div>
+          </div>
+
+          {/* Center Watch Now Button - Shows when video is playing */}
+          <div
+            className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ${
+              !showSearchPlaceholder ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+          >
+            <Button
+              size="lg"
+              onClick={handleWatchNowClick}
+              className="bg-white text-black hover:bg-gray-200 px-12 py-4 text-xl font-bold rounded-xl shadow-2xl transform hover:scale-105 transition-all duration-300"
+            >
+              <Play className="w-8 h-8 mr-3" />
+              Watch Now
+            </Button>
           </div>
 
           {/* Bottom Left Movie Info */}
