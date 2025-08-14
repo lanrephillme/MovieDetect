@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from "react"
 import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
+import { MovieCarousels } from "@/components/movie-carousels"
+import { AIAssistant } from "@/components/ai-assistant"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Play, Calendar, Clock, Users, Trophy, Tv } from "lucide-react"
+import { Play, Calendar, Clock, Users, Trophy } from "lucide-react"
 import Image from "next/image"
 
 interface SportEvent {
@@ -167,31 +170,17 @@ export default function SportsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0E17]">
+    <main className="min-h-screen bg-[#0B0E17]">
       <Header />
-
-      <main className="pt-20 px-4 md:px-8 lg:px-16">
+      <div className="pt-16">
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="text-4xl font-bold text-white mb-8">Sports</h1>
+          <p className="text-[#B3B3B3] mb-8">Watch live sports, documentaries, and sports-related content.</p>
+        </div>
+        <MovieCarousels />
+      </div>
+      <div className="pt-20 px-4 md:px-8 lg:px-16">
         <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Sports Events</h1>
-            <p className="text-[#B3B3B3] text-lg">Watch live sports events and highlights from around the world</p>
-          </div>
-
-          {/* Live Events Banner */}
-          <div className="mb-8 bg-gradient-to-r from-red-600 to-red-800 rounded-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-white mb-2">🔴 Live Now</h2>
-                <p className="text-red-100">Don't miss the action happening right now</p>
-              </div>
-              <Button className="bg-white text-red-600 hover:bg-gray-100">
-                <Tv className="w-4 h-4 mr-2" />
-                Watch Live
-              </Button>
-            </div>
-          </div>
-
           {/* Filters */}
           <div className="mb-8 space-y-4">
             {/* Sport Filter */}
@@ -345,7 +334,9 @@ export default function SportsPage() {
             </div>
           )}
         </div>
-      </main>
-    </div>
+      </div>
+      <AIAssistant />
+      <Footer />
+    </main>
   )
 }

@@ -20,7 +20,6 @@ interface HeroMovie {
   cast: string[]
 }
 
-// Using free movie trailers from various sources
 const featuredMovies: HeroMovie[] = [
   {
     id: 1,
@@ -107,7 +106,6 @@ export function MovieDetectHero() {
 
   const currentMovie = featuredMovies[currentMovieIndex]
 
-  // Auto-play functionality
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!isSearchOpen && !isFullscreen) {
@@ -121,7 +119,6 @@ export function MovieDetectHero() {
     return () => clearTimeout(timer)
   }, [currentMovieIndex, isSearchOpen, isFullscreen])
 
-  // Auto-advance carousel
   useEffect(() => {
     if (!isPlaying && !isFullscreen) {
       const interval = setInterval(() => {
@@ -131,7 +128,6 @@ export function MovieDetectHero() {
     }
   }, [isPlaying, isFullscreen])
 
-  // Video event handlers
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
@@ -150,7 +146,6 @@ export function MovieDetectHero() {
       setIsPlaying(false)
       setShowControls(true)
       if (!isFullscreen) {
-        // Auto-advance to next movie
         setCurrentMovieIndex((prev) => (prev + 1) % featuredMovies.length)
       }
     }
@@ -187,7 +182,6 @@ export function MovieDetectHero() {
     setIsFullscreen(!isFullscreen)
     setShowControls(true)
     if (!isFullscreen) {
-      // Entering fullscreen
       if (videoRef.current && !isPlaying) {
         videoRef.current.play().catch(console.log)
       }
@@ -196,7 +190,6 @@ export function MovieDetectHero() {
 
   const handleAddToWatchlist = () => {
     setIsInWatchlist(!isInWatchlist)
-    // API call would go here
     console.log(isInWatchlist ? "Removed from watchlist" : "Added to watchlist", currentMovie.title)
   }
 
@@ -239,16 +232,13 @@ export function MovieDetectHero() {
 
   return (
     <>
-      {/* Fullscreen Video Player */}
       {isFullscreen && (
         <div className="fullscreen-video">
           <video ref={videoRef} className="w-full h-full object-cover" muted={isMuted} playsInline controls={false}>
             <source src={currentMovie.trailer} type="video/mp4" />
           </video>
 
-          {/* Fullscreen Controls */}
           <div className="absolute inset-0 bg-black/20">
-            {/* Top Controls */}
             <div className="absolute top-4 right-4 flex gap-2">
               <Button
                 variant="ghost"
@@ -268,7 +258,6 @@ export function MovieDetectHero() {
               </Button>
             </div>
 
-            {/* Center Play/Pause */}
             <div className="absolute inset-0 flex items-center justify-center">
               <Button
                 variant="ghost"
@@ -280,7 +269,6 @@ export function MovieDetectHero() {
               </Button>
             </div>
 
-            {/* Bottom Info */}
             <div className="absolute bottom-8 left-8 right-8">
               <h2 className="text-3xl font-bold text-white mb-2">{currentMovie.title}</h2>
               <p className="text-gray-200 max-w-2xl">{currentMovie.synopsis}</p>
@@ -289,9 +277,7 @@ export function MovieDetectHero() {
         </div>
       )}
 
-      {/* Main Hero Section */}
       <div className="relative min-h-screen overflow-hidden">
-        {/* Background Video/Image */}
         <div className="absolute inset-0">
           {isPlaying && !isFullscreen ? (
             <video
@@ -317,12 +303,10 @@ export function MovieDetectHero() {
             />
           )}
 
-          {/* Gradient Overlays */}
           <div className="absolute inset-0 bg-gradient-to-r from-[#0B0E17]/90 via-[#0B0E17]/50 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E17] via-transparent to-transparent" />
         </div>
 
-        {/* Navigation Arrows */}
         <Button
           variant="ghost"
           size="sm"
@@ -340,7 +324,6 @@ export function MovieDetectHero() {
           <ChevronRight className="w-6 h-6" />
         </Button>
 
-        {/* Video Controls */}
         <div className="absolute top-24 right-6 z-30 flex gap-2">
           <Button
             variant="ghost"
@@ -360,10 +343,8 @@ export function MovieDetectHero() {
           </Button>
         </div>
 
-        {/* Content */}
         <div className="relative z-20 flex flex-col justify-center min-h-screen px-4 md:px-8 lg:px-16">
           <div className="max-w-4xl mx-auto w-full text-center">
-            {/* About MovieDetect Section */}
             <div className="mb-12 animate-fadeIn">
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6">
                 Discover Movies with <span className="gradient-text">AI</span>
@@ -376,7 +357,6 @@ export function MovieDetectHero() {
               </p>
             </div>
 
-            {/* Search Methods Button */}
             <div className="mb-16">
               <Button
                 onClick={() => setIsSearchOpen(true)}
@@ -387,7 +367,6 @@ export function MovieDetectHero() {
               </Button>
             </div>
 
-            {/* Featured Movie Info */}
             {showControls && (
               <div className="animate-fadeIn">
                 <div className="text-left max-w-2xl">
@@ -402,7 +381,6 @@ export function MovieDetectHero() {
                   </div>
                   <p className="text-[#B3B3B3] mb-6 leading-relaxed">{currentMovie.synopsis}</p>
 
-                  {/* Action Buttons */}
                   <div className="flex flex-wrap gap-4">
                     <Button
                       onClick={toggleFullscreen}
@@ -443,7 +421,6 @@ export function MovieDetectHero() {
           </div>
         </div>
 
-        {/* Movie Carousel */}
         <div className="absolute bottom-8 left-0 right-0 z-20">
           <div className="px-4 md:px-8 lg:px-16">
             <div className="flex items-center gap-4 mb-4">
@@ -496,7 +473,6 @@ export function MovieDetectHero() {
           </div>
         </div>
 
-        {/* Progress Indicators */}
         <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
           {featuredMovies.map((_, index) => (
             <button
@@ -510,7 +486,6 @@ export function MovieDetectHero() {
         </div>
       </div>
 
-      {/* Search Modal */}
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </>
   )

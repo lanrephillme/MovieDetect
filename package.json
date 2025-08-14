@@ -67,7 +67,6 @@
     "react-hook-form": "^7.47.0",
     "react-hot-toast": "^2.4.1",
     "redis": "^4.6.0",
-    "shadcn": "latest",
     "sharp": "^0.32.0",
     "stripe": "latest",
     "tailwind-merge": "^2.5.5",

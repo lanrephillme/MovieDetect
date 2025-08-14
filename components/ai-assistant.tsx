@@ -31,7 +31,6 @@ export function AIAssistant() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const lastScrollY = useRef(0)
 
-  // Handle scroll visibility
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
@@ -50,7 +49,6 @@ export function AIAssistant() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
@@ -69,7 +67,6 @@ export function AIAssistant() {
     setInputMessage("")
     setIsTyping(true)
 
-    // Simulate AI response
     setTimeout(() => {
       const aiResponse = generateAIResponse(inputMessage)
       const aiMessage: Message = {
@@ -126,7 +123,6 @@ export function AIAssistant() {
       return "Music-based searches are powerful! Try describing: the genre of music, memorable lyrics, when the song plays in the movie, the mood it creates, or even humming the tune using our audio search feature. Movie soundtracks are often very distinctive!"
     }
 
-    // Default responses for general queries
     const defaultResponses = [
       "That's a great start! To improve your search, try adding more specific details like the time period, genre, main actors, or memorable scenes. The more details you provide, the better our AI can help you find the exact movie!",
       "I can help you refine that description! Consider mentioning the movie's setting, visual style, or any distinctive elements you remember. You can also try our different search methods - voice, image, or even face recognition!",

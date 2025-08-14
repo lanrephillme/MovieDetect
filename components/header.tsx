@@ -13,7 +13,7 @@ export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [isLoggedIn, setIsLoggedIn] = useState(false) // Mock login state
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -42,7 +42,6 @@ export function Header() {
 
   const handleLogout = () => {
     setIsLoggedIn(false)
-    // Add logout logic here
   }
 
   const navItems = [
@@ -61,7 +60,6 @@ export function Header() {
     >
       <div className="container mx-auto px-4 md:px-8 lg:px-16">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-[#00E6E6] rounded-lg flex items-center justify-center">
               <span className="text-[#0B0E17] font-bold text-lg">M</span>
@@ -69,7 +67,6 @@ export function Header() {
             <span className="text-white font-bold text-xl">MovieDetect</span>
           </Link>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {navItems.map((item) => (
               <Link
@@ -82,7 +79,6 @@ export function Header() {
             ))}
           </nav>
 
-          {/* Search Bar - Desktop */}
           <div className="hidden lg:block flex-1 max-w-md mx-8">
             <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3] w-4 h-4" />
@@ -96,34 +92,27 @@ export function Header() {
             </form>
           </div>
 
-          {/* User Actions */}
           <div className="flex items-center space-x-4">
-            {/* Search Icon - Mobile */}
             <Button
               variant="ghost"
               size="sm"
               className="lg:hidden text-[#B3B3B3] hover:text-[#00E6E6]"
-              onClick={() => {
-                /* Open search modal */
-              }}
+              onClick={() => {}}
             >
               <Search className="w-5 h-5" />
             </Button>
 
             {isLoggedIn ? (
               <>
-                {/* Notifications */}
                 <Button variant="ghost" size="sm" className="text-[#B3B3B3] hover:text-[#00E6E6] relative">
                   <Bell className="w-5 h-5" />
                   <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#00E6E6] rounded-full"></span>
                 </Button>
 
-                {/* Settings */}
                 <Button variant="ghost" size="sm" className="text-[#B3B3B3] hover:text-[#00E6E6]">
                   <Settings className="w-5 h-5" />
                 </Button>
 
-                {/* Profile */}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -135,7 +124,6 @@ export function Header() {
               </>
             ) : (
               <>
-                {/* Login Button */}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -145,7 +133,6 @@ export function Header() {
                   Sign In
                 </Button>
 
-                {/* Get Started Button */}
                 <Button
                   size="sm"
                   onClick={handleSignup}
@@ -156,7 +143,6 @@ export function Header() {
               </>
             )}
 
-            {/* Mobile Menu Button */}
             <Button
               variant="ghost"
               size="sm"
@@ -168,11 +154,9 @@ export function Header() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden border-t border-[#1F2937] bg-[#0B0E17]/95 backdrop-blur-md">
             <div className="px-4 py-4 space-y-4">
-              {/* Mobile Search */}
               <form onSubmit={handleSearch} className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3] w-4 h-4" />
                 <Input
@@ -184,7 +168,6 @@ export function Header() {
                 />
               </form>
 
-              {/* Mobile Navigation */}
               <nav className="space-y-2">
                 {navItems.map((item) => (
                   <Link
@@ -198,7 +181,6 @@ export function Header() {
                 ))}
               </nav>
 
-              {/* Mobile Auth Buttons */}
               {!isLoggedIn && (
                 <div className="flex space-x-4 pt-4 border-t border-[#1F2937]">
                   <Button

@@ -1,21 +1,17 @@
-"use client"
-
 import { Header } from "@/components/header"
 import { MovieDetectHero } from "@/components/movie-detect-hero"
 import { MovieCarousels } from "@/components/movie-carousels"
 import { AIAssistant } from "@/components/ai-assistant"
-import { ScrollToTop } from "@/components/scroll-to-top"
+import { Footer } from "@/components/footer"
 
-export default function HomePage() {
+export default function Home() {
   return (
-    <div className="min-h-screen bg-[#0B0E17]">
+    <main className="min-h-screen bg-[#0B0E17]">
       <Header />
-      <main>
-        <MovieDetectHero />
-        <MovieCarousels />
-      </main>
+      <MovieDetectHero />
+      <MovieCarousels />
       <AIAssistant />
-      <ScrollToTop />
-    </div>
+      <Footer />
+    </main>
   )
 }

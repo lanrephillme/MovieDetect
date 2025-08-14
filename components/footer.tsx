@@ -1,137 +1,117 @@
-"use client"
-
-import { Github, Twitter, Linkedin, Mail, Heart } from "lucide-react"
 import Link from "next/link"
-
-const footerLinks = {
-  product: [
-    { name: "Features", href: "/features" },
-    { name: "Pricing", href: "/pricing" },
-    { name: "API", href: "/api" },
-    { name: "Documentation", href: "/docs" },
-  ],
-  company: [
-    { name: "About", href: "/about" },
-    { name: "Blog", href: "/blog" },
-    { name: "Careers", href: "/careers" },
-    { name: "Contact", href: "/contact" },
-  ],
-  support: [
-    { name: "Help Center", href: "/help" },
-    { name: "Community", href: "/community" },
-    { name: "Status", href: "/status" },
-    { name: "Feedback", href: "/feedback" },
-  ],
-  legal: [
-    { name: "Privacy Policy", href: "/privacy" },
-    { name: "Terms of Service", href: "/terms" },
-    { name: "Cookie Policy", href: "/cookies" },
-    { name: "DMCA", href: "/dmca" },
-  ],
-}
-
-const socialLinks = [
-  { name: "GitHub", href: "https://github.com", icon: Github },
-  { name: "Twitter", href: "https://twitter.com", icon: Twitter },
-  { name: "LinkedIn", href: "https://linkedin.com", icon: Linkedin },
-  { name: "Email", href: "mailto:hello@moviedetect.com", icon: Mail },
-]
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Facebook, Twitter, Instagram, Youtube, Mail } from "lucide-react"
 
 export function Footer() {
   return (
-    <footer className="bg-gray-950 border-t border-gray-800">
-      <div className="max-w-7xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
-          {/* Brand Section */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">MD</span>
+    <footer className="bg-[#0B0E17] border-t border-[#1F2937] py-16">
+      <div className="container mx-auto px-4 md:px-8 lg:px-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+          {/* Brand */}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-[#00E6E6] rounded-lg flex items-center justify-center">
+                <span className="text-[#0B0E17] font-bold text-lg">M</span>
               </div>
-              <span className="text-xl font-bold text-white">MovieDetect</span>
+              <span className="text-white font-bold text-xl">MovieDetect</span>
             </div>
-            <p className="text-gray-400 mb-6 max-w-sm">
-              Discover movies like never before with AI-powered search technology. Find your next favorite film using
-              text, images, voice, and more.
+            <p className="text-[#B3B3B3] text-sm">
+              Discover movies and TV shows using advanced AI-powered search technology.
             </p>
             <div className="flex space-x-4">
-              {socialLinks.map((social) => {
-                const Icon = social.icon
-                return (
-                  <Link
-                    key={social.name}
-                    href={social.href}
-                    className="w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-lg flex items-center justify-center transition-colors"
-                    aria-label={social.name}
-                  >
-                    <Icon className="w-5 h-5 text-gray-400 hover:text-white" />
-                  </Link>
-                )
-              })}
+              <Button variant="ghost" size="sm" className="text-[#B3B3B3] hover:text-[#00E6E6] p-2">
+                <Facebook className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="sm" className="text-[#B3B3B3] hover:text-[#00E6E6] p-2">
+                <Twitter className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="sm" className="text-[#B3B3B3] hover:text-[#00E6E6] p-2">
+                <Instagram className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="sm" className="text-[#B3B3B3] hover:text-[#00E6E6] p-2">
+                <Youtube className="w-4 h-4" />
+              </Button>
             </div>
           </div>
 
-          {/* Links Sections */}
-          <div>
-            <h3 className="text-white font-semibold mb-4">Product</h3>
-            <ul className="space-y-3">
-              {footerLinks.product.map((link) => (
-                <li key={link.name}>
-                  <Link href={link.href} className="text-gray-400 hover:text-white transition-colors">
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          {/* Navigation */}
+          <div className="space-y-4">
+            <h3 className="text-white font-semibold">Navigation</h3>
+            <div className="space-y-2">
+              <Link href="/" className="block text-[#B3B3B3] hover:text-[#00E6E6] text-sm transition-colors">
+                Home
+              </Link>
+              <Link href="/movies" className="block text-[#B3B3B3] hover:text-[#00E6E6] text-sm transition-colors">
+                Movies
+              </Link>
+              <Link href="/tv-shows" className="block text-[#B3B3B3] hover:text-[#00E6E6] text-sm transition-colors">
+                TV Shows
+              </Link>
+              <Link href="/genres" className="block text-[#B3B3B3] hover:text-[#00E6E6] text-sm transition-colors">
+                Genres
+              </Link>
+              <Link href="/sports" className="block text-[#B3B3B3] hover:text-[#00E6E6] text-sm transition-colors">
+                Sports
+              </Link>
+            </div>
           </div>
 
-          <div>
-            <h3 className="text-white font-semibold mb-4">Company</h3>
-            <ul className="space-y-3">
-              {footerLinks.company.map((link) => (
-                <li key={link.name}>
-                  <Link href={link.href} className="text-gray-400 hover:text-white transition-colors">
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          {/* Support */}
+          <div className="space-y-4">
+            <h3 className="text-white font-semibold">Support</h3>
+            <div className="space-y-2">
+              <Link href="/contact" className="block text-[#B3B3B3] hover:text-[#00E6E6] text-sm transition-colors">
+                Contact Us
+              </Link>
+              <Link href="/features" className="block text-[#B3B3B3] hover:text-[#00E6E6] text-sm transition-colors">
+                Features
+              </Link>
+              <Link href="/pricing" className="block text-[#B3B3B3] hover:text-[#00E6E6] text-sm transition-colors">
+                Pricing
+              </Link>
+              <Link href="/profile" className="block text-[#B3B3B3] hover:text-[#00E6E6] text-sm transition-colors">
+                My Account
+              </Link>
+              <Link href="/settings" className="block text-[#B3B3B3] hover:text-[#00E6E6] text-sm transition-colors">
+                Settings
+              </Link>
+            </div>
           </div>
 
-          <div>
-            <h3 className="text-white font-semibold mb-4">Support</h3>
-            <ul className="space-y-3">
-              {footerLinks.support.map((link) => (
-                <li key={link.name}>
-                  <Link href={link.href} className="text-gray-400 hover:text-white transition-colors">
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="text-white font-semibold mb-4">Legal</h3>
-            <ul className="space-y-3">
-              {footerLinks.legal.map((link) => (
-                <li key={link.name}>
-                  <Link href={link.href} className="text-gray-400 hover:text-white transition-colors">
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          {/* Newsletter */}
+          <div className="space-y-4">
+            <h3 className="text-white font-semibold">Stay Updated</h3>
+            <p className="text-[#B3B3B3] text-sm">Get the latest movie recommendations and updates.</p>
+            <div className="space-y-2">
+              <Input
+                type="email"
+                placeholder="Enter your email"
+                className="bg-[#1F2937] border-[#1F2937] text-white placeholder-[#B3B3B3] focus:border-[#00E6E6]"
+              />
+              <Button className="w-full bg-[#00E6E6] text-[#0B0E17] hover:bg-[#00CCCC]">
+                <Mail className="w-4 h-4 mr-2" />
+                Subscribe
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Bottom Section */}
-        <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-400 text-sm">© 2024 MovieDetect. All rights reserved.</p>
-          <div className="flex items-center space-x-1 text-gray-400 text-sm mt-4 md:mt-0">
-            <span>Made with</span>
-            <Heart className="w-4 h-4 text-red-500 fill-current" />
-            <span>for movie lovers everywhere</span>
+        {/* Bottom Bar */}
+        <div className="border-t border-[#1F2937] pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            <p className="text-[#B3B3B3] text-sm">© 2024 MovieDetect. All rights reserved.</p>
+            <div className="flex space-x-6">
+              <Link href="/privacy" className="text-[#B3B3B3] hover:text-[#00E6E6] text-sm transition-colors">
+                Privacy Policy
+              </Link>
+              <Link href="/terms" className="text-[#B3B3B3] hover:text-[#00E6E6] text-sm transition-colors">
+                Terms of Service
+              </Link>
+              <Link href="/cookies" className="text-[#B3B3B3] hover:text-[#00E6E6] text-sm transition-colors">
+                Cookie Policy
+              </Link>
+            </div>
           </div>
         </div>
       </div>

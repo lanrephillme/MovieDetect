@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
+import { MovieCarousels } from "@/components/movie-carousels"
+import { AIAssistant } from "@/components/ai-assistant"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -124,17 +127,18 @@ export default function MoviesPage() {
   }, [movies, searchQuery, selectedGenre, sortBy])
 
   return (
-    <div className="min-h-screen bg-[#0B0E17]">
+    <main className="min-h-screen bg-[#0B0E17]">
       <Header />
+      <div className="pt-16">
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="text-4xl font-bold text-white mb-8">Movies</h1>
+          <p className="text-[#B3B3B3] mb-8">Discover the latest movies, trending films, and timeless classics.</p>
+        </div>
+        <MovieCarousels />
+      </div>
 
-      <main className="pt-20 px-4 md:px-8 lg:px-16">
+      <div className="pt-20 px-4 md:px-8 lg:px-16">
         <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Movies</h1>
-            <p className="text-[#B3B3B3] text-lg">Discover amazing movies from our vast collection</p>
-          </div>
-
           {/* Filters */}
           <div className="mb-8 space-y-4">
             {/* Search */}
@@ -260,7 +264,10 @@ export default function MoviesPage() {
             </div>
           )}
         </div>
-      </main>
-    </div>
+      </div>
+
+      <AIAssistant />
+      <Footer />
+    </main>
   )
 }

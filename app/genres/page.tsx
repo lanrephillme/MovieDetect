@@ -2,6 +2,9 @@
 
 import { useState } from "react"
 import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
+import { MovieCarousels } from "@/components/movie-carousels"
+import { AIAssistant } from "@/components/ai-assistant"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Play, ArrowRight } from "lucide-react"
@@ -96,19 +99,35 @@ export default function GenresPage() {
   const [hoveredGenre, setHoveredGenre] = useState<number | null>(null)
 
   return (
-    <div className="min-h-screen bg-[#0B0E17]">
+    <main className="min-h-screen bg-[#0B0E17]">
       <Header />
-
-      <main className="pt-20 px-4 md:px-8 lg:px-16">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-12 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Explore by Genre</h1>
-            <p className="text-[#B3B3B3] text-lg max-w-2xl mx-auto">
-              Discover your next favorite movie or TV show by browsing through our carefully curated genres
-            </p>
+      <div className="pt-16">
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="text-4xl font-bold text-white mb-8">Genres</h1>
+          <p className="text-[#B3B3B3] mb-8">Browse movies and shows by your favorite genres.</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+            {[
+              "Action",
+              "Comedy",
+              "Drama",
+              "Horror",
+              "Sci-Fi",
+              "Romance",
+              "Thriller",
+              "Adventure",
+              "Animation",
+              "Crime",
+              "Fantasy",
+              "Mystery",
+            ].map((genre) => (
+              <div
+                key={genre}
+                className="bg-[#1F2937] hover:bg-[#00E6E6] hover:text-[#0B0E17] text-white p-4 rounded-lg text-center cursor-pointer transition-all duration-300"
+              >
+                {genre}
+              </div>
+            ))}
           </div>
-
           {/* Genres Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {genres.map((genre) => (
@@ -162,31 +181,11 @@ export default function GenresPage() {
               </Card>
             ))}
           </div>
-
-          {/* Popular Combinations */}
-          <div className="mt-16">
-            <h2 className="text-3xl font-bold text-white mb-8 text-center">Popular Combinations</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {[
-                { name: "Action + Sci-Fi", count: 340 },
-                { name: "Horror + Thriller", count: 280 },
-                { name: "Comedy + Romance", count: 420 },
-                { name: "Drama + Biography", count: 190 },
-              ].map((combo, index) => (
-                <Card
-                  key={index}
-                  className="bg-[#1F2937] border-[#1F2937] hover:border-[#00E6E6] transition-all duration-300 cursor-pointer"
-                >
-                  <CardContent className="p-4 text-center">
-                    <h4 className="text-white font-semibold mb-2">{combo.name}</h4>
-                    <p className="text-[#B3B3B3] text-sm">{combo.count} movies</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
+          <MovieCarousels />
         </div>
-      </main>
-    </div>
+      </div>
+      <AIAssistant />
+      <Footer />
+    </main>
   )
 }
